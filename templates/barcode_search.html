@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+<style type="text/css">
+.Tag_black{
+color:black;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <!--若使用者有做過搜尋且不符合規定這跳出以下設定訊息-->
+<div class="ui center aligned container">
+    <p>
+    <h1 class="ui header">
+        <!-- Search RNA Editing Events By:-->
+    </h1>
+    </p>
+<p>
+<div class="ui piled segment">
+<p style="line-height: 44px;border:1px">
+{% with 'ACC  BLCA BRCA CESC CHOL COAD DLBC ESCA GBM HNSC KICH KIRC KIRP LAML LGG LIHC LUAD LUSC MESO OV PAAD PCPG PRAD READ SARC SKCM STAD TGCT THCA THYM UCEC UCS UVM' as list %}
+{% for cancer in list.split %}
+<a href="/sample/{{ cancer }}">
+  {% if cancer == "OV" %}
+  <div class="ui animated teal basic button" >
+    <div class="visible content">&nbsp;{{ cancer }}&nbsp;</div>
+    <div class="hidden content">
+    <i class="right arrow icon"></i>
+    </div>
+  </div>
+<!--  <button class="ui teal basic button">{{ cancer }}</button>  -->
+
+{% elif  cancer == "ACC" or cancer == "LGG" or cancer == "GBM" or cancer == "UCS" or cancer == "UVM" %}
+  <div class="ui animated teal basic button" >
+    <div class="visible content">{{ cancer }}</div>
+    <div class="hidden content">
+    <i class="right arrow icon"></i>
+    </div>
+  </div>
+
+{% else %}
+<div class="ui animated teal basic button" >
+    <div class="visible content">{{ cancer }}</div>
+    <div class="hidden content">
+    <i class="right arrow icon"></i>
+    </div>
+  </div>
+{% endif %}
+{% endfor %}
+{% endwith %}
+</a>
+</p>
+</div>
+
+</p>
+&nbsp;&nbsp;
+
+<form class="ui form" action="" method="get">
+<div class="ui three column centered grid">
+    <!--供使用者輸入barcode的欄位-->
+    <div class="four column centered row">
+        <div class="right aligned column">
+            <div class="ui basic large label">
+                <span class="Tag_black">TCGA Sample Barcode:</span>
+            </div>
+        </div>
+        <div class="six wide left aligned column">
+          <div class="two fields">
+            <div class="twelve wide filed">
+              <input id="sample_barcode" type="text" name="sample_barcode_field" placeholder="e.g. TCGA-4P-AA8J-01A">
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <div class="four wide filed">
+              <div class="middle aligned column">
+                <button class="ui teal button" type="submit">Search</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!--送出搜尋條件的按鍵-->
+    
+</div>
+</form>
+
+<form class="ui form" action="/sample/ALL/" method="get">
+<div class="ui three column centered grid">
+    <div class="four column centered row">
+        <div class="right aligned column">
+             <div class="ui basic large label">
+                <span class="Tag_black">Tissue:</span>
+            </div>
+        </div>
+        <div class="six wide left aligned column">
+            <div class="ui fluid search selection dropdown tiss">
+              <input type="hidden" name="tissue">
+              <i class="dropdown icon"></i>
+              <div class="default text">Select Tissue</div>
+              <div class="menu">
+              </div>
+            </div>
+        </div>
+    </div>
+    <div class="four column centered row">
+        <div class="right aligned column">
+            <div class="ui basic large label">
+                <span class="Tag_black">Gender:</span>
+            </div>
+        </div>
+        <div class="six wide left aligned column">
+        <div class="inline fields">
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" name="gender" value="0">
+              <label>female</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" name="gender" value="1">
+              <label>male</label>
+            </div>
+          </div>
+        </div>
+        </div>
+    </div>
+    <div class="four column centered row">
+        <div class="right aligned column">
+            <div class="ui basic large label">
+                <span class="Tag_black">Age:</span>
+            </div>
+        </div>
+        <div class="six wide left aligned column">
+          <div class="ui left fluid action input">
+            <div class="ui input">
+                <input id="age_from" type="text" name="age_from" placeholder="10">
+            </div>
+            <div class="middle aligned content">
+                <a class="header">&nbsp;-&nbsp;</a>
+            </div>
+            <div class="ui input">
+                <input id="age_to" type="text" name="age_to" placeholder="90">
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    <div class="four column centered row">
+        <div class="right aligned column">
+            <div class="ui basic large label">Tumor:</div>
+        </div>
+        <div class="six wide left aligned column">
+            <div class="field">
+                <select class="ui fluid search dropdown" name="tumor" value="any">
+                    <option value="">Both</option>
+                    <option value="1">Tumor</option>
+                    <option value="0">Normal</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <!--送出搜尋條件的按鍵-->
+    <div class="middle aligned column">
+        <button class="ui teal button" type="submit">Search</button>
+    </div>
+    
+</div>
+</form>
+
+</div>
+<script type="text/javascript">
+$('.ui.dropdown.tiss')
+  .dropdown({
+    values: [
+{name: 'Adrenal Gland',value: 'Adrenal Gland'},
+{name: 'Bile Duct',value: 'Bile Duct'},
+{name: 'Bladder',value: 'Bladder'},
+{name: 'Brain',value: 'Brain'},
+{name: 'Breast',value: 'Breast'},
+{name: 'Cervix',value: 'Cervix'},
+{name: 'Colorectal',value: 'Colorectal'},
+{name: 'Esophagus',value: 'Esophagus'},
+{name: 'Extra Adrenal Gland',value: 'Extra Adrenal Gland'},
+{name: 'Eye',value: 'Eye'},
+{name: 'Head and Neck',value: 'Head and Neck'},
+{name: 'Kidney',value: 'Kidney'},
+{name: 'Liver',value: 'Liver'},
+{name: 'Lung',value: 'Lung'},
+{name: 'Lymph Nodes',value: 'Lymph Nodes'},
+{name: 'Ovary',value: 'Ovary'},
+{name: 'Pancreas',value: 'Pancreas'},
+{name: 'Pleura',value: 'Pleura'},
+{name: 'Prostate',value: 'Prostate'},
+{name: 'Skin',value: 'Skin'},
+{name: 'Soft Tissue',value: 'Soft Tissue'},
+{name: 'Stomach',value: 'Stomach'},
+{name: 'Testis',value: 'Testis'},
+{name: 'Thymus',value: 'Thymus'},
+{name: 'Thyroid',value: 'Thyroid'},
+{name: 'Uterus',value: 'Uterus'},
+    ]
+  });
+</script>
+{% endblock %}

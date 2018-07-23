@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}{% endblock %}
+{% block content %}
+
+        <div class="ui container">
+        <!--<div class="ui big segment">-->
+            <div class="ui two item menu">
+            <a class="item active" href="#Introduction">Introduction</a>
+            <a class="item" href="#Usage">Usage</a>
+           <!--  <a class="item" href="#Data">Materials</a> -->
+            </div>
+            <a name=Introduction>  </a> 
+                <h1>What is REdiC ?</h1>
+                <p>
+                    REdiC is a freely available database providing A-to-I RNA editing events from 10,683 individuals across 32 cancer types in the TCGA cohort, as well as predicted gain/loss of miRNA-mRNA interactions caused by RNA editing. Unlike other resources, we identified hyper-edited reads from unmapped reads and integrated miRNA expression and clinical information (e.g., cancer stage and survival data) of all individuals to better link RNA editing events with their functional consequences. Altogether, REdiC represents a comprehensive resource for A-to-I RNA editing events in cancer and provides a solid basis for addressing the functions of RNA editing in the initiation and progression of human cancer.
+                </p> 
+                <p> Currently, users can:</p> 
+                <p>1.  search editing events by genomic region, gene name or genic region;</p> 
+                <p>2.  search editing events by tissue, cancer type, sample barcode, age or gender;</p>
+                <p>3.  search editing frequency and clinical information of each individual;</p>
+                <p>4.  browse editing sites likely affecting the interaction of miRNA-mRNA (gain or loss);</p>
+                <p>5.  browse individual's miRNA expression data to better link gain/loss of miRNA-mRNA interaction with functional consequences</p>
+            
+             <div class="ui divider"></div>      
+            <a name=Usage> </a>
+                <h1>How to use REdiC ?</h1>
+                
+                <p>In the homepage, overview of REdiC is given, including database description, type of data stored, search buttons (search by region and search by case) that allow user to search the database, help page and contact information. Users can choose to search edting sites and frequency by region or case.</p> 
+                 <img class="ui fluid image" src="{% static "img/home.jpg" %}" alt="DNA homepage picture" >
+                <div class="ui divider"></div>    
+                <p>When choosing search by region, user can choose one of the following criteria: </p>
+                 <img class="ui fluid image" src="{% static "img/G1.jpg" %}" alt="DNA homepage picture" > 
+                 <p>or choose to search with both criteria 1 and 3：</p>
+                 <img class="ui fluid image" src="{% static "img/G2.jpg" %}" alt="DNA homepage picture" >   
+                 <p>or search with both criteria 2 and 3：</p>
+                 <img class="ui fluid image" src="{% static "img/G3.jpg" %}" alt="DNA homepage picture" >   
+                 <p>Result of search by region is a big table containing properties of selected editing sites. Users can move mouse cursor to the column name and a description will show up. In this table, users can click on the snp (green, to go to dbSNP website), miRGain/miRLoss (number represents the the number of miRNA:mRNA interaction changes) or n.Samples (number represents the the number of cases edited on the given site) buttons of a editing sites. Additionally, users can click on a column name and results will be sorted according to the values of the selected column. By default, the table is sorted by genomic position. 
+                 </p>
+                 <img class="ui fluid image" src="{% static "img/G4.jpg" %}" alt="DNA homepage picture" >   
+        
+                 <p>If miRGain or miRLoss button of a editing site is clicked, users will go to the page describing details of miRNA:mRNA interaction changes. Here, three preidction tools were used: TargetScan, miRanda, and MBStar. A miRNA:mRNA pair is considered if predicted by at least two of the tools. The Tool column describes the source of the binding interaction figure. The figure from miRanda is always shown if available. Users can click the Exp button of a miRNA:mRNA pair to get miRNA expression and clinical info. of all the cases edited on this site (Editing frequency >0.01 and miR expression >0 TPM)</p>
+                 <img class="ui fluid image" src="{% static "img/M1.jpg" %}" alt="DNA homepage picture" >   
+                 <p></p>
+                 <img class="ui fluid image" src="{% static "img/M2.jpg" %}" alt="DNA homepage picture" >   
+                  <div class="ui divider"></div>
+                 <p>Alternatively, if clicking the n.Samples (>0) button of a editing site in the editing table, users can get editing details of all the cases edited on this site. The results can be further filtered according to different criteria. If clinical info button is clicked, both clinical info. of the case and editing details are shown.</p>
+                 <img class="ui fluid image" src="{% static "img/G5.jpg" %}" alt="DNA homepage picture" > 
+                 <img class="ui fluid image" src="{% static "img/G6.jpg" %}" alt="DNA homepage picture" > 
+                <div class="ui divider"></div>
+                <div class="ui divider"></div>   
+                 <p>Users can also choose to search by case with one of the following criteria:</p>
+                 <img class="ui fluid image" src="{% static "img/S1.jpg" %}" alt="DNA homepage picture" >   
+                
+                 <p>If a cancer type is clicked, all cases of the cancer type will be shown. Information includes the number of editing sites and clinical info. of each case.</p>
+                 <img class="ui fluid image" src="{% static "img/S2.jpg" %}" alt="DNA homepage picture" >   
+                 
+                 <p>Users can also choose to select by tissue, gender, age or any combination of the three:</p>
+                 <img class="ui fluid image" src="{% static "img/S6.jpg" %}" alt="DNA homepage picture" >   
+                 <p></p>
+                 <img class="ui fluid image" src="{% static "img/S7.jpg" %}" alt="DNA homepage picture" >   
+               
+                 <p>Alternatively, if users are interested in a particular case, users can type its TCGA barcode:</p>
+                 <img class="ui fluid image" src="{% static "img/S8.jpg" %}" alt="DNA homepage picture" >   
+                 <div class="ui divider"></div>
+                  <br>
+                 <p>If a case is selected, all the editing sites (and editing frequency) of the case will be shown. </p>
+                 <img class="ui fluid image" src="{% static "img/S3.jpg" %}" alt="DNA homepage picture" >  
+                <br>
+
+                 <p>Users can click the n.Sample button of a editing site to get editing details of all the cases edited on this site.  </p>
+                 <img class="ui fluid image" src="{% static "img/S4.jpg" %}" alt="DNA homepage picture" >
+                 <br>
+                 <p>Or users can click the EditingFreq (incl.HE) button of a editing site to get editing details of the selected site and clinical info. of the case.</p>
+                 <img class="ui fluid image" src="{% static "img/S5.jpg" %}" alt="DNA homepage picture" >   
+                 <!-- <div class="ui divider"></div>   
+               <a name=Data> </a>
+                hahahahah  -->
+            
+                <div class="ui divider"></div>
+        </div>
+{% endblock %}
+
+
+

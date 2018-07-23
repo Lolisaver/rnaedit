@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+        <title>{% block title %}{% endblock %}</title>
+        {% block headscript %}{% endblock %}
+    </head>
+
+    <body>
+<!--        <<div class="ui inverted segments"> -->
+            <img class="ui fluid image" src="{% static "Topfigure.jpg" %}" alt="DNA homepage picture" >
+<!--            <div class="ui huge attached stackable inverted menu">  -->
+            <div class="ui inverted attached stackable menu">    
+                <div class="ui container">
+<!--                    <a class="ui  teal button" href="/">Overview</a>
+                    <a class="ui  teal button" href="/search/">Search By Region</a>-->
+                    <a class="item" href="/overview/">Overview</a>
+                    <a class="item" href="/search/">Search By Region</a>
+                    <a class="item" href="/barcode/">Search By Case</a>
+                    <a class="item" href="/mirna/">Search By miRNA</a>
+                    <a class="item" href="/help/">Help</a>
+                    <a class="item" href="/contact/">Contact</a>
+                </div>
+            </div>
+        <!--</div>-->
+        {% block content %}{% endblock %}
+    </body>
+</html>

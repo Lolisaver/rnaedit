@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+{% endblock %}
+{% block content %}
+    <!--若使用者有做過搜尋且不符合規定這跳出以下設定訊息-->
+
+<div class="ui text center aligned container">
+  <form class="ui form" action="/mirna_sites/POST/" method="post">
+{% csrf_token %}
+    <h3 class="ui header">by miRNA name</h3>
+    <div class="ui action input">
+      <div class="ui search selection mirna dropdown">
+        <input type="hidden" name="mirna">
+        <i class="dropdown icon"></i>
+        <div class="default text">Select miRNA</div>
+        <div class="menu" id="mirna_target">
+        </div>
+      </div>
+      <button class="ui teal button" type="submit">Search</button>
+    </div>
+  </form>
+<div class="ui horizontal divider">OR</div>
+  <form class="ui form" action="/mirna_results/" method="post">
+{% csrf_token %}
+    <h3 class="ui header">by miRNA expression</h3>
+    <div class="inline fields">
+      <div class="two wide field"></div>
+      <div class="three wide field">
+        <label>from</label>
+        <input type="text" name='exp_from'>
+      </div>
+      <div class="three wide field">
+        <label>to</label>
+        <input type="text" name='exp_to'>
+      </div>
+      <div class="six wide field">
+        <label>in</label>
+        <div class="ui action input">
+          <div class="ui fluid search selection dropdown">
+            <input type="hidden" name="cancer_field">
+            <i class="dropdown icon"></i>
+            <div class="default text">Select cancer</div>
+            <div class="menu" id="cancer_target"></div>
+          </div>
+          <button class="ui teal button" type="submit">Search</button>
+        </div>
+      </div>
+      <div class="two wide field"></div>
+    </div>
+  </form>
+</div>
+<script type="text/javascript">
+var mirnas = [
+{% for opt in miropt %}
+"{{ opt }}", 
+{% endfor %}
+]
+var i;
+for (i = 0; i < mirnas.length; i++){
+    var opt = document.createElement("div");
+    var textnode = document.createTextNode(mirnas[i]);
+    opt.appendChild(textnode);
+    opt.setAttribute("class", "item");
+    opt.setAttribute("data-value", mirnas[i]);
+    document.getElementById("mirna_target").appendChild(opt);
+}
+var cancers = ['ACC', 'BLCA', 'BRCA', 'CESC', 'CHOL', 'COAD', 'DLBC', 'ESCA', 'GBM',
+             'HNSC', 'KICH', 'KIRC', 'KIRP', 'LAML', 'LGG', 'LIHC', 'LUAD', 'LUSC', 
+            'MESO', 'OV', 'PAAD', 'PCPG', 'PRAD', 'READ', 'SARC', 'SKCM','STAD', 
+            'TGCT', 'THCA', 'THYM', 'UCEC', 'UCS', 'UVM'];
+
+for (i = 0; i < cancers.length; i++){
+    var opt = document.createElement("div");
+    var textnode = document.createTextNode(cancers[i]);
+    opt.appendChild(textnode);
+    opt.setAttribute("class", "item");
+    opt.setAttribute("data-value", cancers[i]);
+    document.getElementById("cancer_target").appendChild(opt);
+}
+$('.ui.dropdown')
+  .dropdown()
+;
+</script>
+{% endblock %}

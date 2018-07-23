@@ -1,0 +1,11 @@
+cancer,edin,p50,is_tumor
+OV,0.0,0.0526,True
+STAD,0.0,0.0714,True
+LGG,0.0,0.1000,True
+BLCA,0.0,0.0909,True
+BLCA,0.0,0.1818,True
+BRCA,0.0,0.1000,True
+GBM,0.01,0.4545,True
+GBM,0.01,0.5000,True
+STAD,0.0,0.0833,True
+STAD,0.0,0.0909,True

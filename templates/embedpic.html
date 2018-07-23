@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript">
+          if ('{{ pic }}' == 'img/nodata.png'){
+            parent.vanish("{{ img_src }}");
+          }
+        </script>
+        <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+    </head>
+
+    <body>
+		<div class="ui fluid container">
+		<img class="ui fluid image" src="{% static pic %}">
+    <div class="ui center aligned container">
+      <span id="p1s10"></span>
+    </div>
+		</div>
+<script type="text/javascript">
+var picname = "{{ img_src }}"; //p1
+parent.p1load(picname, "{% static pic %}");
+
+var t5 = [];
+{% for d in t5 %}
+t5.push(["{{ d.site }}", "{{ d.p50 }}", "{{ d.edin5 }}",]);
+{% endfor %}
+var n5 = [];
+{% for d in n5 %}
+n5.push(["{{ d.site }}", "{{ d.p50 }}", "{{ d.edin5 }}",]);
+{% endfor %}
+
+function show_sites(sites, color) {
+  var i;
+  for (i = 0; i < sites.length; i++) {
+    var site_label = document.createElement("a");
+    site_label.setAttribute('class', 'ui ' + color + ' circular label');
+    site_label.innerHTML = (i + 1).toString();
+    var des10 = sites[i][0].split('_');
+    var chr = des10[0].substring(3,);
+    var loc = des10[1].slice(0, -1);
+    site_label.setAttribute('target', "_parent");
+    site_label.setAttribute('data-inverted', "");
+    site_label.setAttribute('data-position', "bottom center");
+    details = sites[i][0] + ' editing level: ' + sites[i][1] + ' in ' + sites[i][2] + ' samples';
+    site_label.setAttribute('data-tooltip', details);
+    site_label.href = "/search/?chromosome_field=" + chr + "&region_start=" + loc + "&region_end=" + loc + "&gene_name_field=&genomic_region_field=any&repeat_field=any&aa_change_field=any";
+    document.getElementById('p1s10').appendChild(site_label);
+  }
+}
+
+show_sites(t5, 'orange');
+show_sites(n5, 'blue');
+
+</script>
+    </body>
+</html>
+

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}{% endblock %}
+{% block content %}
+<!--建置一個大區塊，裡面放搜尋結果的header、table和分頁-->
+<div class="ui segments">
+
+	<div class="ui segment">
+		<div class="ui center aligned container">
+
+			<!--
+			<!
+			<a class="ui Teal pointing below label"><h2 class="ui header">{{ sam }} ({{ sam.cancer_type }})</h2></a>
+		-->
+			<a class="ui teal basic button"><h2 class="ui teal header">{{ sam }} ({{ sam.cancer_type }})</h2></a>
+		</div>
+		<br>
+		<table class="ui teal striped celled table">
+			<!--此放table的header，header放的為搜尋結果的資料分類-->
+			<thead>
+				<tr>
+					<th class="center aligned">Tissue</th>
+					<th class="center aligned">Tumor</th>
+					<th class="center aligned">Gender</th>
+					<th class="center aligned">Days to birth</th>
+					<th class="center aligned">Days to death</th>
+					<th class="center aligned">Days to last followup</th>
+					<th class="center aligned">Histological type</th>
+					<th class="center aligned">Prospective/retrospective collection indicator</th>
+					<th class="center aligned">Initial diagnosis year</th>
+				</tr>
+			</thead>
+			<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+			<tbody>
+				<tr>
+				    <td class="center aligned">{{ sam.tumor_tissue_site }}</td>
+				    <td class="center aligned">{{ sam.is_tumor|yesno:"tumor,normal,unknown" }}</td>
+				    <td class="center aligned">{{ sam.is_male|yesno:"male,female,unknown" }}</td>
+				    <td class="center aligned">{{ sam.days_to_birth|slice:"1:" }}</td>
+				    <td class="center aligned">
+				    	{% if sam.days_to_death == -1 %}
+				    	alive
+				    	{% else %}
+				    	{{ sam.days_to_death }}
+				    	{% endif %}
+					</td>
+				    <td class="center aligned">{{ sam.days_to_last_followup }}</td>
+				    <td class="center aligned">{{ sam.histological_type }}</td>
+				    <td class="center aligned">{{ sam.tissue_prospective_collection_indicator }} / {{ sam.tissue_retrospective_collection_indicator }}</td>
+				    <td class="center aligned">{{ sam.year_of_initial_pathologic_diagnosis }}</td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<table class="ui teal striped celled table">
+			<!--此放table的header，header放的為搜尋結果的資料分類-->
+			<thead>
+				<tr>
+					<th class="center aligned">Clinical stage</th>
+					<th class="center aligned">Pathologic stage</th>
+					<th class="center aligned">T/N/M pathologic</th>
+					<th class="center aligned">Initial diagnosis age</th>
+					<th class="center aligned">Treatment history</th>
+					<th class="center aligned">Other dx</th>
+					<th class="center aligned">Neoplasm cancer status</th>
+					<th class="center aligned">Postoperative rx tx</th>
+					<th class="center aligned">Radiation therapy</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+				    <td class="center aligned">{{ sam.stage_event_clinical_stage }}</td>
+				    <td class="center aligned">{{ sam.stage_event_pathologic_stage }}</td>
+				    <td class="center aligned">
+				    {{ sam.tnm_categories_pathologic_T }} /
+				    {{ sam.tnm_categories_pathologic_N }} /
+				    {{ sam.tnm_categories_pathologic_M }}
+					</td>
+				    <td class="center aligned">{{ sam.age_at_initial_pathologic_diagnosis }}</td>
+				    <td class="center aligned">{{ sam.history_of_neoadjuvant_treatment }}</td>
+				    <td class="center aligned">{{ sam.other_dx }}</td>
+				    <td class="center aligned">{{ sam.person_neoplasm_cancer_status }}</td>
+				    <td class="center aligned">{{ sam.postoperative_rx_tx }}</td>
+				    <td class="center aligned">{{ sam.radiation_therapy }}</td>
+				</tr>
+			</tbody>
+		</table>
+		<br><br><br>
+		<div class="ui center aligned container">
+
+			<!-- <a class="ui teal pointing below label"><h1 class="ui header">Editing Details for {{ chromosome }}: {{ site }}</h1></a>
+			-->
+			<a class="ui blue basic button"><h2 class="ui blue header">Editing Details for {{ chromosome }}: {{ site }}</h2></a>
+
+		</div>
+		<br>
+		<table class="ui blue striped celled table">
+			<thead>
+				<tr>
+					<th class="center aligned"  data-tooltip="TCGA sample barcode">SampleBarcode</th>
+					<th class="center aligned">CancerType</th>
+					<th class="center aligned">Tissue</th>
+					<th class="center aligned" data-tooltip="Number of mapped reads">n.As</th>
+					<th class="center aligned" data-tooltip="Number of mapped reads">n.Gs</th>
+					<th class="center aligned" data-tooltip="Editing frequency from mapped reads">EditingFreq</th>
+					<th class="center aligned" data-tooltip="Number of mapped & hyper edited reads">n.As &nbsp;(incl.HE)</th>
+					<th class="center aligned" data-tooltip="Number of mapped & hyper edited reads">n.Gs &nbsp;(incl.HE)</th>
+					<th class="center aligned" data-tooltip="Editing frequency from mapped & hyper edited reads">EditingFreq &nbsp;(incl.HE)</th>
+				</tr>
+			</thead>
+			<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+			<tbody>
+				<tr>
+				    <td class="center aligned"><a href="/barcode/?sample_barcode_field={{ sam }}">{{ sam }}</a></td>
+				    <td class="center aligned">{{ sam.cancer_type }}</td>
+				    <td class="center aligned">{{ sam.tumor_tissue_site }}</td>
+				    <td class="center aligned">{{ level.redi_A }}</td>
+				    <td class="center aligned">{{ level.redi_G }}</td>
+				    <td class="center aligned">{{ ori_level|floatformat:2 }}</td>
+				    <td class="center aligned">{{ level.redi_A|add:level.hyper_A }}</td>
+				    <td class="center aligned">{{ level.redi_G|add:level.hyper_G }}</td>
+				    <td class="center aligned">{{ level.level|floatformat:2 }}</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+<script type="text/javascript">
+$('.dropdown').dropdown({
+  label: {
+    duration: 0,
+  },
+  debug: true,
+  performance: true,
+});
+</script>
+{% endblock %}

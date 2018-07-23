@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+<style type="text/css">
+.Consolas{
+font-family: Consolas, Lucida Console, monospace;
+}
+</style>
+<!-- Heatmap starts -->
+<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/heatmap.css" %}">
+<script src="{% static "js/heatmap.js" %}"></script>
+<!-- Heatmap ends -->
+<script src="http://d3js.org/d3.v3.js"></script>
+{% load nbsp %}
+{% load mathfilters %}
+{% endblock %}
+{% block content %}
+<div class="ui segments">
+	
+
+	<!--小區塊，裡面放搜尋結果的table-->
+	<div class="ui container">
+	<div class="ui big segment">
+		<div class="ui center aligned container">
+				<h2 class="ui header">{{ site.chromo }}:{{ site.loc }}</h2>
+		</div>
+<br>
+<!-- Gain table start -->
+{% if gain_binds|length > 0 %}
+		<table class="ui grey striped celled selectable table" >
+			<!--此放table的header，header放的為搜尋結果的資料分類-->
+			<thead>
+				<tr class="center aligned"><th colspan="6">Gain of miRNA:mRNA when edited</th></tr>
+				<tr>
+					<th class="center aligned">Pair</th>
+					<th class="center aligned">Binding</th>
+					<th class="center aligned">Tool</th>
+					<th class="center aligned">Score</th>
+					<th class="center aligned">Energy<br>(kCal/Mol)</th>
+					<th class="center aligned"><a data-tooltip="miRNA expression in edited samples">miR expression</a></th>
+				</tr>
+			</thead>
+			<tbody>
+{% for bind in gain_binds %}
+				  <tr><td colspan="6">
+				  	<div id="heat_{{ bind.mir }}" class="ui fluid center aligned container"></div>
+					<script type="text/javascript">
+					var data = [];
+					{% for exp in bind.mir.miexpcancer_set.all %}
+					  console.log("{{ exp.p50 }}");
+					  {% if exp.is_tumor == 1 %}
+					    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% else %}
+					    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% endif %}
+					  data.push(block);
+					{% endfor %}
+					heatmapChart(data, 
+						"heat_{{ bind.mir }}", 
+						$("#heat_{{ bind.mir }}").width() * 0.9,
+						$("#heat_{{ bind.mir }}").width() * 0.12);
+					</script>
+				  </td></tr>
+			      <tr>
+			        <td class="right aligned">
+			        	<a class="ui large label" href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc={{ bind.mir.accession }}" target="_blank">{{ bind.mir }}</a>
+			        	<br>
+			        	<br>
+			        	<a class="ui large label" href="http://asia.ensembl.org/Homo_sapiens/Transcript/Summary?t={{ bind.utr }}" target="_blank">{{ bind.utr }}</a>
+			        </td>
+			        <td class="left aligned">
+			        	<span class="Consolas">
+			        		{{ bind.miseq|nbsp }}
+			        		<br>
+			        		{{ bind.binder|nbsp }}
+			        		<br>
+			        		{{ bind.mseq|nbsp }}
+			        	</span>
+			        </td>
+			        <td class="center aligned">
+{% if bind.score > 100 %}
+miRanda
+{% else %}
+MBStar
+{% endif %}
+			        </td>
+			        <td class="center aligned">{{ bind.score|floatformat:1 }}</td>
+			        	<td class="center aligned">
+{% if bind.energy != 0 %}
+{{ bind.energy|floatformat:2 }}
+{% else %}
+-
+{% endif %}
+						</td>
+					<td class="center aligned"><a class="ui large label" href="/mirexp/{{ site }}/{{ bind.mir }}">Exp</a></td>
+
+			      </tr>
+{% endfor %}
+			</tbody>
+		</table>
+{% endif %}
+<!-- Gain table end -->
+{% if loss_binds|length > 0 %}
+<!-- Loss table start -->
+
+<br><br>
+		<table class="ui grey striped celled selectable table" >
+			<!--此放table的header，header放的為搜尋結果的資料分類-->
+			<thead>
+				<tr class="center aligned" id="loss"><th colspan="6">Loss of miRNA:mRNA when edited</th></tr>
+				<tr>
+					<th class="center aligned">Pair</th>
+					<th class="center aligned">Binding</th>
+					<th class="center aligned">Tool</th>
+					<th class="center aligned">Score</th>
+					<th class="center aligned">Energy<br>(kCal/Mol)</th>
+					<th class="center aligned"><a data-tooltip="miRNA expression in edited samples">miR expression</a></th>
+				</tr>
+			</thead>
+			<tbody>
+{% for bind in loss_binds %}
+				  <tr><td colspan="6">
+				  	<div id="heat_{{ bind.mir }}" class="ui fluid center aligned container"></div>
+					<script type="text/javascript">
+					var data = [];
+					{% for exp in bind.mir.miexpcancer_set.all %}
+					  console.log("{{ exp.p50 }}");
+					  {% if exp.is_tumor == 1 %}
+					    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% else %}
+					    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% endif %}
+					  data.push(block);
+					{% endfor %}
+					heatmapChart(data, 
+						"heat_{{ bind.mir }}", 
+						$("#heat_{{ bind.mir }}").width() * 0.9,
+						$("#heat_{{ bind.mir }}").width() * 0.12);
+					</script>
+				  </td></tr>
+			      <tr>
+			        <td class="right aligned">
+			        	<a class="ui large label" href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc={{ bind.mir.accession }}" target="_blank">{{ bind.mir }}</a>
+			        	<br>
+			        	<br>
+			        	<a class="ui large label" href="http://asia.ensembl.org/Homo_sapiens/Transcript/Summary?t={{ bind.utr }}" target="_blank">{{ bind.utr }}</a>
+			        </td>
+			        <td class="left aligned">
+			        	<span class="Consolas">
+			        		{{ bind.miseq|nbsp }}
+			        		<br>
+			        		{{ bind.binder|nbsp }}
+			        		<br>
+			        		{{ bind.mseq|nbsp }}
+			        	</span>
+			        </td>
+			        <td class="center aligned">
+{% if bind.score > 100 %}
+miRanda
+{% else %}
+MBStar
+{% endif %}
+			        </td>
+			        <td class="center aligned">{{ bind.score|floatformat:1 }}</td>
+			        	<td class="center aligned">
+{% if bind.energy != 0 %}
+{{ bind.energy|floatformat:2 }}
+{% else %}
+--
+{% endif %}
+						</td>
+					<td class="center aligned"><a class="ui large label" href="/mirexp/{{ site }}/{{ bind.mir }}">Exp</a></td>
+			      </tr>
+{% endfor %}
+			</tbody>
+		</table>
+{% endif %}
+<!-- Loss table end -->
+		</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

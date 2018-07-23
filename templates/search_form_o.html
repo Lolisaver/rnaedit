@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+        <title>search sample</title>
+    </head>
+
+    <body style="background-color:#1C1C1C;">
+        <div class="ui inverted segments">
+            <img class="ui fluid image" src="{% static "homepage.jpg" %}" alt="DNA homepage picture" >
+
+            <div class="ui huge attached stackable inverted menu">
+                <div class="ui container">
+                    <a class="active item">Editing</a>
+                    <a class="item" href="/barcode/">by barcode</a>
+                    <a class="item">ClinInfo</a>
+                    <a class="item">Download</a>
+                    <a class="item">Help</a>
+                    <a class="item">Contact</a>
+                    <a class="item" href="/admin/">Admin</a>
+                </div>
+            </div>
+
+        
+            <div class="ui inverted segment">
+                <!--若使用者有做過搜尋且不符合規定這跳出以下設定訊息-->
+                <div class="ui center aligned container">
+                    <h1 class="ui inverted header">
+                        Search RNA Editing Sites By:
+                    </h1>
+                {% if sample_barcode_error %}
+                    <div class="ui red label">This sample barcode is not in our database.</div>
+                    <div class="ui red label">{{ barcode }}</div>
+                    <div class="ui red label">This sample barcode is not in our database.</div>
+                {% endif %}
+                {% if zero_result %}
+                        <div class="ui red label">There is no data satisfies your request.</div>
+                {% endif %}
+                </div>
+            </div>
+
+            <div class="ui inverted segment">
+                <div class="ui center aligned container">
+                <form class="ui inverted form" action="" method="get">
+                <div class="ui three column centered grid">
+                    <!--供使用者輸入範圍的欄位-->
+                    <div class="four column centered row">
+                        <div class="right aligned column">
+                            <div class="ui inverted yellow right pointing large label">
+                                <span style="color:black;">Genome Region:</span>
+                            </div>
+                        </div>
+                        <!--可供使用者選想要的chromosome-->
+                        <div class="six wide left aligned column">
+                            <div class="ui left fluid action input">
+                                <select class="ui dropdown" name="chromosome_field" value="0" style="width:70px">
+                                    <option value="0">Any</option>
+                                    <option value="1">chr1</option>
+                                    <option value="2">chr2</option>
+                                    <option value="3">chr3</option>
+                                    <option value="4">chr4</option>
+                                    <option value="5">chr5</option>
+                                    <option value="6">chr6</option>
+                                    <option value="7">chr7</option>
+                                    <option value="8">chr8</option>
+                                    <option value="9">chr9</option>
+                                    <option value="10">chr10</option>
+                                    <option value="11">chr11</option>
+                                    <option value="12">chr12</option>
+                                    <option value="13">chr13</option>
+                                    <option value="14">chr14</option>
+                                    <option value="15">chr15</option>
+                                    <option value="16">chr16</option>
+                                    <option value="17">chr17</option>
+                                    <option value="18">chr18</option>
+                                    <option value="19">chr19</option>
+                                    <option value="20">chr20</option>
+                                    <option value="21">chr21</option>
+                                    <option value="22">chr22</option>
+                                    <option value="X">chrX</option>
+                                    <option value="Y">chrY</option>
+                                </select>
+                                <!--供使用者輸入區間範圍-->
+                                <div class="ui input">
+                                    <input type="text" placeholder="Coordinates like: 124356-654321" name="region_field">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--給使用者輸入genename 欄位-->
+                    <div class="four column centered row">
+                        <div class="right aligned column">
+                            <div class="ui yellow right pointing large label">
+                                <span style="color:black;">Gene Name:</span>
+                            </div>
+                        </div>
+                        <div class="six wide left aligned column">
+                            <input type="text" name="gene_name_field" placeholder="Gene Symbol like CLEC18A, PGA3, SERF1A ...">
+                        </div>
+                    </div>
+
+                    <!--給使用者輸入genomic region的欄位-->
+                    <div class="four column centered row">
+                        <div class="right aligned column">
+                            <div class="ui yellow right pointing large label">
+                                <span style="color:black;">Genomic Region:</span>
+                            </div>
+                        </div>
+                        <!--給使用者用選擇的方式避免輸入錯誤-->
+                        <div class="six wide left aligned column">
+                            <div class="field">
+                                <select class="ui fluid search dropdown" name="genomic_region_field" value="any">
+                                    <option value="any">Any</option>
+                                    <option value="utr5">UTR5</option>
+                                    <option value="utr3">UTR3</option>
+                                    <option value="intronic">intronic</option>
+                                    <option value="intergenic">intergenic</option>
+                                    <option value="exonic">Exonic</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--給使用者輸入AA change的欄位-->
+                    <div class="four column centered row">
+                        <div class="right aligned column">
+                            <div class="ui yellow right pointing large label">
+                                <span style="color:black;">AA change:</span>
+                            </div>
+                        </div>
+                        <div class="six wide left aligned column">
+                            <div class="field">
+                                <select class="ui fluid search dropdown" name="aa_change_field" value="any">
+                                    <option value="any">Any</option>
+                                    <option value="synonymous">Synonymous</option>
+                                    <option value="nonsynonymous">Nonsynonymous</option>
+                                    <option value="stop_loss">Stop Loss</option>
+                                    <option value="unknown">Unknown</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--送出搜尋條件的按鍵-->
+                    <div class="middle aligned column">
+                        <button class="ui blue button" type="submit">Submit</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

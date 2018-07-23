@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+{% endblock %}
+{% block content %}
+<!--若使用者有做過搜尋且不符合規定這跳出以下設定訊息-->
+<div class="ui center aligned container">
+    <p>
+    <h1 class="ui header">{{ meta.site }} in {{ meta.cancer }}</h1>
+    </p><br>
+</div>
+<div class="ui center aligned container">
+<div class="ui grid">
+  <div class="two wide column"></div>
+  <div class="twelve wide column">
+  <img src="{% static pic %}">
+  </div>
+  <div class="two wide column"></div>
+</div>
+
+</div>
+{% endblock %}

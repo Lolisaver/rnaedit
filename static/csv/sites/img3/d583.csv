@@ -1,0 +1,11 @@
+cancer,edin,p50,is_tumor
+STAD,0.0,0.0625,True
+STAD,0.0,0.7500,True
+STAD,0.0,0.3125,True
+STAD,0.0,0.0588,True
+STAD,0.0,0.1429,True
+STAD,0.0,0.1765,True
+STAD,0.0,0.0714,True
+ESCA,0.01,0.0909,True
+LGG,0.0,0.1000,True
+LGG,0.0,0.1818,True

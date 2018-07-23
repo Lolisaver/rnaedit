@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+{% load mathfilters %}
+{% endblock %}
+{% block content %}
+<!--建置一個大區塊，裡面放搜尋結果的header、table和分頁-->
+<div class="ui segments">
+	
+	<!--小區塊，裡面放搜尋結果的header，顯示個使用者看他們點進去哪個座標-->
+	<div class="ui segment">
+		<div class="ui center aligned container">
+			<h1 class="ui header">You are at</h1>
+			<h1 class="ui header">{{ site.chromo }}:{{ site.loc }}</h1>
+		</div>
+	</div>
+	{% if button == "editing_level" %}
+	<div class="ui piled segment">
+		
+	</div>
+	{% endif %}
+	<!--小區塊，裡面放搜尋結果的table-->
+	<div class="ui segment">
+		<div class="ui horizontal list">
+			<div class="item">
+				<div class="ui menu">
+					{% if button != "editing_level" %}
+					<div class="ui simple dropdown item">
+						Show {{ datas_per_page }} rows
+						<i class="dropdown icon"></i>
+						<div class="menu">
+							{% with "10 25 50 100" as list %}
+								{% for i in list.split %}
+									{% if i == "datas_per_page" %}
+										<a class="disabled item">{{ i }} rows</a>
+									{% else %}
+										<a class="item" href="?{{ search_record }}&datas_per_page={{ i }}">{{ i }} rows</a>
+									{% endif %}
+								{% endfor %}
+							{% endwith %}
+						</div>
+					</div>
+					{% endif %}
+					{% with "SampleBarcode,CancerType,Tissue,BodySite,n.As,n.Gs,EditedFreq,Total A,Total G,Total Editing Freq" as header_list %}
+						<a class="item" href="/download_csv/?{{ search_record }}&{{ header_list}}&header={{ header_list }}">
+							Download
+						</a>
+					{% endwith %}
+				</div>
+			</div>
+		</div>
+		<table class="ui blue striped celled selectable table">
+			<!--此放table的header，header放的為搜尋結果的資料分類-->
+			<thead>
+				<tr>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=sample_barcode" data-tooltip="TCGA sample barcode">
+							SampleBarcode
+							{% if current_sort == "sample_barcode" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=cancer_type">
+							CancerType
+							{% if current_sort == "cancer_type" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=tumor_tissue_site">
+							Tissue
+							{% if current_sort == "tumor_tissue_site" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=redi_A" data-tooltip="Number of mapped reads">
+							n.As
+							{% if current_sort == "redi_A" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=redi_G" data-tooltip="Number of mapped reads">
+							n.Gs
+							{% if current_sort == "redi_G" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned sorted descending">
+						<a href="?{{ search_record }}&click_sort=editing_freq" data-tooltip="Editing frequency from mapped reads">
+							EditingFreq
+							{% if current_sort == "editing_freq" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=total_A" data-tooltip="Number of mapped & hyper edited reads">
+							n.As &nbsp;(incl.HE)
+							{% if current_sort == "total_A" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=total_G" data-tooltip="Number of mapped & hyper edited reads">
+							n.Gs &nbsp;(incl.HE)
+							{% if current_sort == "total_G" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">
+						<a href="?{{ search_record }}&click_sort=total_freq" data-tooltip="Editing frequency from mapped & hyper edited reads">
+							EditingFreq &nbsp;(incl.HE)
+							{% if current_sort == "total_freq" %}
+								<i class="caret {{ sorted_direction }} icon"></i>
+							{% endif %}
+						</a>
+					</th>
+					<th class="center aligned">Clinical info</th>
+				</tr>
+			</thead>
+			<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+			<tbody>
+				{% for level in levels %}
+				<tr>
+				    <td class="center aligned">{{ level.sample }}</td>
+				    <td class="center aligned">{{ level.sample.cancer_type }}</td>
+				    <td class="center aligned">{{ level.sample.tumor_tissue_site }}</td>
+				    <td class="center aligned">{{ level.redi_A }}</td>
+				    <td class="center aligned">{{ level.redi_G }}</td>
+				    <td class="center aligned">
+				    {% if level.redi_AG != 0 %}
+				    {{ level.redi_G|div:level.redi_AG|floatformat:2 }}
+				    {% else %}
+				    0
+				    {% endif %}
+					</td>
+				    <td class="center aligned">{{ level.hyper_A|add:level.redi_A }}</td>
+				    <td class="center aligned">{{ level.hyper_G|add:level.redi_G }}</td>
+				    <td class="center aligned">{{ level.level|floatformat:2 }}</td>
+				    <td class="center aligned"><a class="mini ui blue label" href="/editing_detail/?button=editing_level&chr={{ level.site.chromo }}&site={{ level.site.loc }}&sample_barcode_field={{ level.sample }}">C</a></td>
+				</tr>
+				{% empty %}
+				<tr class="center aligned"><td colspan="10"><h2 class="ui orange header">No results found</h2></td></tr>
+				{% endfor %}
+			</tbody>
+			<!--放置搜尋資料的最後一列，這邊我們一樣放的是跟header一樣的東西，不同的事此列有設置按鈕可以對資料做篩選-->
+			<tfoot>
+			<tr>
+				<!--用來檢定我們在上一層的搜尋結果是按哪一個按鈕近來這個頁面的，如果是按editing_level的數值進來的話就不在table的最後一列增加篩選的功能（因為結果只有一個）-->
+				{% if button == "editing_level" %}
+					<th class="center aligned"><b>SampleBarcode</b></th>
+					<th class="center aligned"><b>CancerType</b></th>
+					<th class="center aligned"><b>Tissue</b></th>
+				<!--用來檢定我們在上一層的搜尋結果是按哪一個按鈕近來這個頁面的，如果是點選editedIn那欄的數值近來，將會有在這一個site所有的sample的資料，所以需要增加篩選功能給使用者-->
+				{% else %}
+					<th class="center aligned selectable">
+						<!--篩選功能設計為一顆按鈕-->
+						<div class="small ui left pointing floating dropdown icon button">
+							<!--按鈕名稱為SampleBarcode-->
+							SampleBarcode
+							<!--在按鈕的名稱旁邊加上漏斗的圖案-->
+							<i class="filter icon"></i>
+							<!--為這個按鈕新增下拉式選單以供使用者做篩選-->
+							<div class="menu">
+								<!--下拉式選單中加入搜尋欄可以加快使用者找到想要的結果-->
+								<div class="ui left search icon input">
+									<i class="search icon"></i>
+									<input type="text" name="sample_barcode_search" placeholder="Search barcode...">
+								</div>
+								<!--加入一個分割線，加強功能與功能之間的區域分辨-->
+								<div class="divider"></div>
+								<!--此為下拉式選單，可以讓使用者點選有哪些資料可以選/篩選-->
+								<div class="scrolling menu">
+									<!--此選項名稱叫All，如果使用者想取消篩選的條件的話可以點選這個選項-->
+									<a class="item" href="/editing_detail/?{{ search_record }}&sample_barcode_dropdown=">
+										All
+									</a>
+									{% for sample_name in sample_name_set %}
+										<a class="item" href="/editing_detail/?{{ search_record }}&sample_barcode_dropdown={{ sample_name }}">
+										{{ sample_name }}
+										</a>
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					</th>
+					<!--以下為新增篩選功能，方法跟SampleBarcode那欄如何做篩選功能一樣-->
+					<th class="center aligned">
+						<div class="small ui left pointing floating dropdown icon button">
+							CancerType
+							<i class="filter icon"></i>
+							<div class="menu">
+								<div class="ui left search icon input">
+									<i class="search icon"></i>
+									<input type="text" name="cancer_type_search" placeholder="Search cancer...">
+								</div>
+								<div class="divider"></div>
+								<div class="scrolling menu">
+									<a class="item" href="/editing_detail/?{{ search_record }}&cancer_type_dropdown=">
+										All
+									</a>
+									{% for cancer_type in cancer_type_set %}
+										<a class="item" href="/editing_detail/?{{ search_record }}&cancer_type_dropdown={{ cancer_type }}">
+										{{ cancer_type }}
+										</a>
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					</th>
+					<!--以下為新增篩選功能，方法跟SampleBarcode那欄如何做篩選功能一樣-->
+					<th class="center aligned">
+						<div class="small ui left pointing floating dropdown icon button">
+							Tissue
+							<i class="filter icon"></i>
+							<div class="menu">
+								<div class="ui left search icon input">
+									<i class="search icon"></i>
+									<input type="text" name="tissue_search" placeholder="Search tissue...">
+								</div>
+								<div class="divider"></div>
+								<div class="scrolling menu">
+									<a class="item" href="/editing_detail/?{{ search_record }}&tissue_dropdown=">
+										All
+									</a>
+									{% for tissue in tissue_set %}
+										<a class="item" href="/editing_detail/?{{ search_record }}&tissue_dropdown={{ tissue }}">
+										{{ tissue }}
+										</a>
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					</th>
+				{% endif %}
+				<!--以下為其他搜尋資料種類的名稱，但沒有篩選功能-->
+				<th class="center aligned"><b>n.As</b></th>
+				<th class="center aligned"><b>n.Gs</b></th>
+				<th class="center aligned"><b>EditingFreq</b></th>
+				<th class="center aligned"><b>n.As &nbsp;(incl.HE)</b></th>
+				<th class="center aligned"><b>n.Gs &nbsp;(incl.HE)</b></th>
+				<th class="center aligned"><b>EditingFreq &nbsp;(incl.HE)</b></th>
+				<th class="center aligned"><b>Clinical info</b></th>
+			</tr>
+			</tfoot>
+		</table>
+
+		<!--如果搜尋的資料超過一頁的話執行以下程式碼-->
+		{% if levels.has_other_pages %}
+		<div class="ui horizontal list">
+			<!--此item放可點選的分頁-->
+		    <div class="item">
+	    		<div class="ui pagination menu">
+	    			<!--如果所在的分頁有上一頁的話執行以下指令-->
+	    			{% if levels.has_previous %}
+	    				<!--使上一頁的按鈕可供點選，且導向上一頁-->
+						<a class="item" href="?page={{ levels.number|add:-1 }}&{{ search_record }}" name="page">
+							<<
+						</a>
+					{% else %}
+						<!--若無上一頁則停止上一頁這個按鈕的功能-->
+						<div class="disabled item">
+							<<
+						</div>
+					{% endif %}	
+					<!--如果所在的頁碼<=5的話則執行以下指令-->
+					{% if levels.number <= 5 %}
+						<!--如果總頁數少於等於7的話執行以下指令，因為我這邊設計頁碼的格子為7格-->
+						{% if levels.paginator.num_pages <= 7 %}
+							<!--對所有頁碼做迴圈for ..in-->
+							{% for i in levels.paginator.page_range %}
+								<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+								{% if i == levels.number %}
+									<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+								<!--若此業法非所在頁面的話，則讓按鈕為沒被按的樣子-->
+								{% else %}
+									<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+								{% endif %}
+							{% endfor %}
+						<!--如果總頁數大於7的話，執行以下指令，因為設計頁碼格子最多為7所以總頁數超過7的話必有某些個子要用來設計為...符號-->
+						{% else %}
+							<!--對頁碼做迴圈-->
+							{% for i in levels.paginator.page_range %}
+								<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+								{% if i == levels.number %}
+									<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+								<!--將小於等於5的頁碼都顯示出來，並且讓按鈕為沒被按的樣子-->
+								{% elif i <= 5 %}
+									<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+								{% endif %}
+							{% endfor %}
+							<!--此為省略中間頁碼的按鈕，沒有功能-->
+							<div class="disabled item">...</div>
+							<!--在省略中間頁碼的按鈕後加上最後一夜的頁碼的按鈕，使使用者方便找到最後一筆資料-->
+							<a class="item" href="?page={{ levels.paginator.num_pages }}&{{ search_record }}" name="page">{{ levels.paginator.num_pages }}</a>
+						{% endif %}
+					<!--如果所在頁碼在離最後頁碼四頁以內的話，執行以下指令-->
+					{% elif levels.number > levels.paginator.num_pages|add:-4 %}
+						<!--如果所在頁碼在離最後頁碼四頁以內的話，還是要顯示第一頁頁碼讓使用者方便瀏覽資料-->
+						<a class="item" href="?page=1&{{ search_record }}" name="page">1</a>
+						<!--除了第一頁以外，中間的頁碼全部用...替代-->
+						<div class="disabled item">...</div>
+						<!--對後四頁做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+						{% for i in levels.paginator.page_range %}
+							{% if i == levels.number %}
+								<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+							{% elif i >= levels.paginator.num_pages|add:-4 %}
+								<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+							{% endif %}
+						{% endfor %}
+					<!--如果所在頁碼不在前五頁或後四頁的話，執行以下指令-->
+					{% else %}
+						<!--對所有頁碼做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+						{% for i in levels.paginator.page_range %}
+							<!--所在頁碼在中間，但第一頁和省略頁還是要顯示出來(第一、二格）-->
+							{% if i == 1 %}
+								<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+								<div class="disabled item">...</div>
+							<!--如果此頁碼為所在頁碼，則給予按鈕被向下壓的感覺(第四格）-->
+							{% elif levels.number == i %}
+								<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+							<!--如果此頁碼為所在頁碼的前後一頁的話，則讓按鈕顯示(第三、五格）-->
+							{% elif i < levels.number|add:2 and i > levels.number|add:-2 %}
+								<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+							<!--所在頁碼在中間，但最後一頁和省略頁還是要顯示出來(第六、七格）-->
+							{% elif i == levels.paginator.num_pages %}
+								<div class="disabled item">...</div>
+								<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+					<!--如果所在的分頁有下一頁的話執行以下指令-->
+					{% if levels.has_next %}
+						<!--使下一頁的按鈕可供點選，且導向下一頁-->
+						<a class="item" href="?page={{ levels.number|add:1 }}&{{ search_record }}" name="page">>></a>
+					{% else %}
+						<!--若無下一頁則停止下一頁這個按鈕的功能-->
+						<div class="blue disabled item">>></div>
+					{% endif %}
+				</div>
+			</div>
+
+			<!--此item放可供搜尋的搜尋欄-->
+			<div class="item">
+				<form class="ui floated form" action="" method="get">
+					<!--用隱藏的欄位將此搜尋頁面的搜尋條件儲存起來，使用者輸入頁碼後一樣用此搜尋條件去找資料庫，只是最後回傳不同頁碼的結果-->
+					{% for key, value in search_request_dict.items %}
+						<input type="hidden" name="{{key}}" value="{{value}}">
+					{% endfor %}
+					<!--創建一個搜尋欄-->
+					<div class="ui  floated action input">
+						<input type="text" id="page_input" style="ime-mode:disabled" placeholder="Page to..." name="page">
+						<!--使搜尋欄只能輸入數字，且數字不能大於最大頁碼-->
+						<script type="text/javascript">
+							var text = document.getElementById("page_input");
+							text.onkeyup = function(){
+								this.value=this.value.replace(/\D/g,'');
+								if(text.value>{{ levels.paginator.num_pages }}){
+							  		text.value = {{ levels.paginator.num_pages }};
+							  	}
+							}
+						</script>
+						<button class="ui button" type="submit">Go</button>
+					</div>
+				</form>
+			</div>
+		{% endif %}
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+$('.dropdown').dropdown({
+  label: {
+    duration: 0,
+  },
+  debug: true,
+  performance: true,
+});
+</script>
+{% endblock %}

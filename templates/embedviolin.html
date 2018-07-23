@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript">
+          if ('{{ pic }}' == 'img/nodata.png'){
+            parent.vanish("{{ img_src }}");
+          }
+        </script>
+        <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+        <script src="https://cdn.plot.ly/plotly-1.32.0.min.js"></script>
+    </head>
+
+    <body>
+		<div class="ui fluid container">
+		  <div id="graph"></div>
+		</div>
+<script type="text/javascript">
+var picname = "{{ img_src }}"; //p1
+var violin_type = "{{ v_type }}"
+Plotly.d3.csv("{% static pic %}", function(err, rows){
+  
+  function unpack(rows, key) {
+  return rows.map(function(row) { return row[key]; });
+  }
+  function unpack_filt(rows, key, tn) {
+  return rows.map(function(row) {
+    if (row['is_tumor'] == tn){
+      //console.log(row[key], row['is_tumor']);
+      return row[key];
+    }
+     });
+  }
+
+if (violin_type == 'combine'){
+console.log('combine!');
+var data = [{
+  type: 'violin',
+  x: unpack(rows, 'cancer'),
+  y: unpack(rows, 'edin'),
+  //scalemode: "count",
+  spanmode: 'hard',
+  box: {
+    visible: false
+  },
+  line: {
+    color: 'orange',
+    //width: 0.5
+  },
+  meanline: {
+    visible: true
+  },
+  showlegend : false,
+  points: false,
+  transforms: [{
+   type: 'groupby',
+   groups: unpack(rows, 'cancer'),
+  }]
+}]
+}else{
+console.log('else!');
+var data = [{
+  type: 'violin',
+  x: unpack_filt(rows, 'cancer', 'True'),
+  y: unpack_filt(rows, 'edin', 'True'),
+  legendgroup: 'True',
+  scalegroup: 'True',
+  //scalemode: "count",
+  spanmode: 'hard',
+  name: 'Tumor',
+  side: 'negative',
+  box: {
+    visible: false
+  },
+  line: {
+    color: 'orange',
+    width: 0.5
+  },
+  meanline: {
+    visible: true
+  },
+  points: false,
+  //orientation: "h"
+}, {
+  type: 'violin',
+  x: unpack_filt(rows, 'cancer', 'False'),
+  y: unpack_filt(rows, 'edin', 'False'),
+  legendgroup: 'False',
+  scalegroup: 'False',
+  //scalemode: "count",
+  spanmode: 'hard',
+  name: 'Normal',
+  side: 'positive',
+  box: {
+    visible: false
+  },
+  line: {
+    color: 'blue',
+    width: 0.5
+  },
+  meanline: {
+    visible: true
+  },
+  points: false,
+  //orientation: "h"
+}]
+}
+
+var layout = {
+  yaxis: {
+    zeroline: false,
+    range: [0, 1],
+    fixedrange: true
+  },
+  violingap: 0,
+  violingroupgap: 0,
+  violinmode: "overlay",
+}
+
+/*
+var layout = {
+  yaxis: {
+    zeroline: false,
+    range: [0, 1],
+    fixedrange: true
+  },
+  violingap: 0,
+  violingroupgap: 0,
+  violinmode: "overlay",
+}
+*/
+
+//Plotly.plot('graph', data, layout, {displayModeBar: false});
+Plotly.plot('graph', data, layout);
+});  
+parent.p1load(picname, "{% static pic %}");
+</script>
+    </body>
+</html>
+

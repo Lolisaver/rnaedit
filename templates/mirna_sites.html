@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+<!-- Heatmap starts -->
+<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/heatmap.css" %}">
+<script src="{% static "js/heatmap.js" %}"></script>
+<!-- Heatmap ends -->
+<script src="http://d3js.org/d3.v3.js"></script>
+{% endblock %}
+{% block content %}
+<div class="ui center aligned container">
+  <h1>{{ mir }}</h1> 
+</div>
+<div id="chart_heat" class="ui fluid center aligned container"></div>
+<script type="text/javascript">
+var data = [];
+{% for exp in mir.miexpcancer_set.all %}
+  console.log("{{ exp.p50 }}");
+  {% if exp.is_tumor == 1 %}
+    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+  {% else %}
+    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+  {% endif %}
+  data.push(block);
+{% endfor %}
+heatmapChart(data, 
+  "chart_heat",
+  $(window).width() * 0.75,
+  $(window).width() * 0.09);
+</script>
+<span id="gain_part">
+<div class="ui center aligned container">
+	<h2>Gain Sites</h2>	
+</div>
+<div class="ui grid">
+  <div class="eight wide column">
+  	<h3 class="ui center aligned header" onclick="p1pop('p1')">Top 10 Edited Sites in Tumor</h3>
+      <div class="ui basic segment">
+      <div class="ui active dimmer" id="p1loader">
+        <div class="ui massive text loader">Loading</div>
+      </div>
+  	  <div class="ui embed" data-url="/img/sites/4/{'gain_mir': '{{ mir }}'}/p1/{{ rd.0 }}/">
+      </div>
+      </div>
+	</div>
+
+  <div class="eight wide column">
+  	<h3 class="ui center aligned header" onclick="p1pop('p2')">Edited Sites in Cancers</h3>
+    <div class="ui basic segment">
+    <div class="ui active dimmer" id="p2loader">
+      <div class="ui massive text loader">Loading</div>
+    </div>  
+  	<div class="ui embed" data-url="/img/sites/3/{'gain_mir': '{{ mir }}'}/p2/{{ rd.0 }}/">
+	  </div>
+    </div>
+  </div>
+</div>
+<div class="ui embed" id="gain_embed">
+	<iframe src="/embed_table/?mirna={{ mir }}&gl=gain_mir&frame=gain_embed" width="100%" height="100%" frameborder="0" scrolling="no" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" id="gain_frame"></iframe>
+</div>
+</span>
+<span id="loss_part">
+<div class="ui center aligned container">
+	<h2>Loss Sites</h2>	
+</div>
+<div class="ui grid" id="loss_imgs">
+  <div class="eight wide column">
+  	<h3 class="ui center aligned header" onclick="p1pop('p3')">Top 10 Edited Sites in Tumor</h3>
+    <div class="ui active dimmer" id="p3loader">
+      <div class="ui massive text loader">Loading</div>
+    </div>
+    <span id="p3pic">
+  	<div class="ui embed" data-url="/img/sites/4/{'loss_mir': '{{ mir }}'}/p3/{{ rd.1 }}/">
+	</div>
+  </div>
+  <div class="eight wide column">
+  	<h3 class="ui center aligned header" onclick="p1pop('p4')">Edited Sites in Cancers</h3>
+    <div class="ui active dimmer" id="p4loader">
+      <div class="ui massive text loader">Loading</div>
+    </div>
+    <span id="p4pic">
+  	<div class="ui embed" data-url="/img/sites/3/{'loss_mir': '{{ mir }}'}/p4/{{ rd.1 }}/">
+	</div>
+  </div>
+</div>
+<div class="ui embed" id="loss_embed" >
+	<iframe src="/embed_table/?mirna={{ mir }}&gl=loss_mir&frame=loss_embed" width="100%" height="100%" frameborder="0" scrolling="no" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" id="loss_frame"></iframe>
+</div>
+</span>
+
+
+<div class="ui modal fullscreen p1big">
+  <i class="close icon"></i>
+  <div class="header">
+    Top 10 Edited Sites
+  </div>
+  <div id="p1img" class="ui fluid image"></div>
+  <div class="actions">
+    <div class="ui deny button">
+      OK
+    </div>
+  </div>
+</div>
+<div class="ui modal fullscreen p2big">
+  <i class="close icon"></i>
+  <div class="header">
+    Sites in cancers
+  </div>
+  <div id="p2img" class="ui fluid image"></div>
+  <div class="actions">
+    <div class="ui deny button">
+      OK
+    </div>
+  </div>
+</div>
+<div class="ui modal fullscreen p3big">
+  <i class="close icon"></i>
+  <div class="header">
+    Top 10 Edited Sites
+  </div>
+  <div id="p3img" class="ui fluid image"></div>
+  <div class="actions">
+    <div class="ui deny button">
+      OK
+    </div>
+  </div>
+</div>
+<div class="ui modal fullscreen p4big">
+  <i class="close icon"></i>
+  <div class="header">
+    Sites in cancers
+  </div>
+  <div id="p4img" class="ui fluid image"></div>
+  <div class="actions">
+    <div class="ui deny button">
+      OK
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+$('.ui.embed').embed();
+function p1pop(pp) {
+	$(function(){
+		$(".fullscreen." + pp + "big").modal('show');
+	});
+}
+function p1load(target_id, img_src) {
+  document.getElementById(target_id + "loader").setAttribute("class", "ui disabled loader");
+  //$("#" + target_id + "pic").show();
+  //document.getElementById(target_id + "pic").setAttribute("style", "");
+	var DOM_img = document.createElement("img");
+	DOM_img.src = img_src;
+	document.getElementById(target_id + "img").appendChild(DOM_img);
+}
+function vanish(tar) {
+  if (tar == 'p1' || tar == 'p2'){
+    document.getElementById("gain_part").setAttribute("style", "display:none");
+  }
+  if (tar == 'p3' || tar == 'p4'){
+    document.getElementById("loss_part").setAttribute("style", "display:none");
+  }
+}
+</script>
+{% endblock %}

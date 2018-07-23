@@ -1,0 +1,10 @@
+cancer,edin,is_tumor
+BRCA,0.18,True
+ESCA,1.23,True
+GBM,0.6,True
+LGG,1.8900000000000001,True
+LUSC,0.2,True
+OV,1.06,True
+PRAD,0.2,True
+STAD,1.3299999999999998,True
+UCEC,0.36,True

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+{% endblock %}
+{% block content %}
+
+<div class="ui float container" style="padding-top:30px">
+<!--
+    <div class="ui three item menu">
+    <a class="item active" href="#Introduction">Intorduction</a>
+    <a class="item" href="#Data">Data and method</a>
+    <a class="item" href="#Usage">How to use</a>
+    </div>
+-->    
+<!--    <span style="color:red" > </span> -->
+<div class="ui grid">
+  <div class="nine wide column">
+	  <h1>Welcome to REdiC</h1>
+    <h3>Systematic discovery of A-to-I RNA editing events and their functions in cancer</h3>
+    <div class="ui divider"></div>
+    <p>
+
+     Several lines of evidence have suggested a role for adenosine-to-inosine (A-to-I) RNA editing in a wide range of human diseases, including cancer and neurological disorders. REdiC (RNA Editing events and their functions in Cancer) is the most comprehensive resource for exploring the function of RNA editing in cancer. REdiC provides A-to-I RNA editing events from 10,683 individuals across 32 cancer types in the TCGA cohort, as well as predicted gain/loss of miRNA-mRNA interactions caused by RNA editing. Unlike other resources, REdiC is the first database that integrates RNA editing frequency, gain/loss of miRNA-mRNA interactions, miRNA expression and clinical information (e.g., cancer stage and survival data) of all individuals to better link RNA editing events with their functional consequences. REdiC represents a solid basis for addressing the functions of RNA editing in the initiation and progression of human cancer. 
+
+    </p>
+    
+    <div class="ui divider"></div>
+
+    <div class="ui tiny statistics">
+    <div class="ui center aligned grid">
+    <div class="five wide column">
+    <div class="ui tiny statistic">
+      <div class="value">32</div>
+      <div class="label">CANCER TYPES</div>
+    </div>
+    </div>
+    <div class="four wide column">
+    <div class="ui tiny statistic">
+      <div class="value">10,683</div>
+      <div class="label">CASES</div>
+    </div>
+    </div>
+    <div class="seven wide column">
+    <div class="ui tiny statistic">
+      <div class="value">4,656,896</div>
+      <div class="label">EDITING SITES</div>
+    </div>
+    </div>
+    <div class="eight wide column">
+    <div class="ui tiny statistic">
+      <div class="value">327,950,725</div>
+      <div class="label">EDITING EVENTS</div>
+    </div>
+    </div>
+    <div class="eight wide column">
+    <div class="ui tiny statistic">
+      <div class="value">640,481</div>
+      <div class="label">miRNA : mRNA CHANGES</div>
+    </div>
+    </div>
+    </div>
+
+    </div>
+  </div>
+  <div class="seven wide column">
+<style>
+
+.axis .domain {
+  display: none;
+}
+
+</style>
+<svg width="600" height="600">
+<line x1="40" y1="570" x2="540" y2="570" style="stroke:#000;stroke-width:1" />
+<line x1="140.5" y1="50" x2="140.5" y2="570" style="stroke:rgb(220,220,220);stroke-width:1"></line>
+<line x1="240.5" y1="50" x2="240.5" y2="570" style="stroke:rgb(220,220,220);stroke-width:1"></line>
+<line x1="340.5" y1="50" x2="340.5" y2="570" style="stroke:rgb(220,220,220);stroke-width:1"></line>
+<line x1="440.5" y1="50" x2="440.5" y2="570" style="stroke:rgb(220,220,220);stroke-width:1"></line>
+</svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    margin = {top: 50, right: 20, bottom: 30, left: 40},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom,
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var x = d3.scaleBand()
+    .rangeRound([width, 0])
+    .paddingInner(0.1)
+    .align(0.1);
+
+var y = d3.scaleLinear()
+    .rangeRound([height, 0]);
+
+var z = d3.scaleOrdinal()
+    .range(["#8ed2f6", "#0d6da0", "#00ff00", "#0000aa"]);  // 圖表顏色！ r share, r uni, hs, hu
+
+
+d3.csv("{% static "csv/data.csv" %}", function(d, i, columns) {
+  for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
+  d.total = t;
+  return d;
+}, function(error, data) {
+  if (error) throw error;
+
+  var keys = data.columns.slice(1);
+
+  //data.sort(function(a, b) { return b.total - a.total; });
+  x.domain(data.map(function(d) { return d.Cancer; }));
+  y.domain([d3.max(data, function(d) { return d.total; }), 0]).nice();
+  z.domain(keys);
+
+  g.append("g")
+    .selectAll("g")
+    .data(d3.stack().keys(keys)(data))
+    .enter().append("g")
+      .attr("fill", function(d) { return z(d.key); })
+    .selectAll("rect")
+    .data(function(d) { return d; })
+    .enter().append("rect")
+      .attr("y", function(d) { return x(d.data.Cancer); })
+      .attr("x", function(d) { return y(d[0]); })
+      .attr("width", function(d) { return y(d[1]) - y(d[0]); }) // 長度 y(d[0]) - y(d[1]); }
+      .attr("height", x.bandwidth()); // 粗度
+
+  g.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0, " + height + ")") //
+      .call(d3.axisBottom(y).ticks(5, "s")); // .ticks(null, "k"))
+
+  g.append("g")
+      .attr("class", "axis")
+      .call(d3.axisLeft(x)) //
+/*
+    .append("text")
+      .attr("x", 2)
+      .attr("y", y(y.ticks().pop()) + 0.5)
+      .attr("dy", "0.32em")
+      .attr("fill", "#000")
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "start")
+      .text("Population");
+*/
+
+  g.append("text")
+      .attr("x", (width / 2))             
+      .attr("y", 0 - (margin.top / 2))
+      .attr("text-anchor", "middle")  
+      .style("font-size", "20px") 
+      .text("Editing Sites by Cancer Type");
+
+  var legend = g.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 13)
+      .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(keys.slice().reverse())
+    .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 29)
+      .attr("width", 19)
+      .attr("height", 19)
+      .attr("fill", z);
+
+  legend.append("text")
+      .attr("x", width - 34)
+      .attr("y", 9.5)
+      .attr("dy", "0.32em")
+      .text(function(d) { return d; });
+
+});
+
+
+</script>
+
+
+  </div>
+</div>
+</div>
+{% endblock %}
+
+
+

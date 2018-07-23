@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript">
+          if ('{{ pic }}' == 'img/nodata.png'){
+            parent.vanish("{{ img_src }}");
+          }
+        </script>
+        <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+        <!-- heatmap starts -->
+        <style type="text/css">
+          circle.bordered {
+            stroke: #E6E6E6;
+            stroke-width:1px;   
+          }
+
+          circle:hover.bordered {
+            stroke: #AAAAAA;
+            stroke-width:2px;             
+          }
+
+          text.mono {
+            font-size: 9pt;
+            font-family: Consolas, courier;
+            fill: #222222;
+          }
+        </style>
+        <script src="http://d3js.org/d3.v3.js"></script>
+        <!-- heatmap ends -->
+    </head>
+
+    <body>
+		<div class="ui fluid container">
+		  <div id="chart"></div>
+      <span id="p1s10"></span>
+		</div>
+<script type="text/javascript">
+var picname = "{{ img_src }}"; //p1
+
+var heatmapChart = function(tsvFile) {
+  $("#chart").empty();
+  d3.csv(tsvFile,
+  function(d) {
+    //console.log(d.site, d.cancer, d.p50, d.edited);
+    return {
+      day: +d.site,
+      hour: +d.cancer,
+      value: +d.p50 * 100,
+      edin: +d.edited
+
+    };
+  },
+  function(error, data) {
+
+var margin = { top: 20, right: 0, bottom: 50, left: 20 },
+    width = $(window).width() - margin.left - margin.right,
+    height = $(window).width() * 0.4 - margin.top - margin.bottom,
+    gridSize = Math.floor(width / 33),
+    legendElementWidth = gridSize*2,
+    buckets = 9,
+    colors = ["#f7fcf0","#e0f3db","#ccebc5","#a8ddb5","#7bccc4","#4eb3d3","#2b8cbe","#0868ac","#084081"],
+    days = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"],
+    times = ['ACC', 'BLCA', 'BRCA', 'CESC', 'CHOL', 'COAD', 'DLBC', 'ESCA', 'GBM', 'HNSC', 'KICH', 'KIRC', 'KIRP','LAML', 'LGG', 'LIHC', 'LUAD', 'LUSC', 'MESO', 'OV', 'PAAD', 'PCPG', 'PRAD', 'READ', 'SARC', 'SKCM', 'STAD', 'TGCT', 'THCA', 'THYM', 'UCEC', 'UCS', 'UVM'];
+
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var colorScale = d3.scale.quantile()
+    //var colorScale = d3.scale.linear()
+        //.domain([0, buckets - 1, d3.max(data, function (d) { return d.value; })])
+        .domain([0, 100])
+        .range(colors);
+
+    var cards = svg.selectAll(".hour")
+        .data(data, function(d) {return d.day+':'+d.hour;});
+
+    cards.append("title");
+
+var dayLabels = svg.selectAll(".dayLabel")
+    .data(days)
+    .enter().append("text")
+      .text(function (d) { return d; })
+      .attr("x", 0)
+      .attr("y", function (d, i) { return i * gridSize; })
+      .style("text-anchor", "end")
+      .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+      .attr("class", "dayLabel mono axis");
+
+var timeLabels = svg.selectAll(".timeLabel")
+    .data(times)
+    .enter().append("text")
+      .text(function(d) { return d; })
+      .attr("x", function(d, i) { return i * gridSize; })
+      .attr("y", 0)
+      .style("text-anchor", "middle")
+      .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+      .attr("class", "timeLabel mono axis");
+
+    cards.enter().append("circle")
+        .attr("cx", function(d) { return (d.hour - 1) * gridSize + (gridSize / 2); })
+        .attr("cy", function(d) { return (d.day - 1) * gridSize + (gridSize / 2); })
+        .attr("r", function(d) { return (d.edin * gridSize / 2); })
+        .attr("class", "hour bordered ui")
+        .attr("width", gridSize)
+        .attr("height", gridSize)
+        .attr("data-tooltip", "infos")
+        .style("fill", '#FFFFFF');
+
+    cards.transition().duration(1000)
+        .style("fill", function(d) { return colorScale(d.value); });
+
+    cards.select("title").text(function(d) { return d.value; });
+    
+    cards.exit().remove();
+
+    var legend = svg.selectAll(".legend")  // 這只是數字而已
+        //.data([0].concat(colorScale.quantiles()), function(d) { return d * 100; });
+        .data([0, 11, 22, 33, 44, 56, 67, 78, 89]);
+
+    legend.enter().append("g")
+        .attr("class", "legend");
+
+    legend.append("rect")
+      .attr("x", function(d, i) { return legendElementWidth * i; })
+      .attr("y", height)
+      .attr("width", legendElementWidth)
+      .attr("height", gridSize / 2)
+      .style("fill", function(d, i) { return colors[i]; });
+
+    legend.append("text")
+      .attr("class", "mono")
+      .text(function(d) { return "≥ " + Math.round(d); })
+      .attr("x", function(d, i) { return legendElementWidth * i; })
+      .attr("y", height + gridSize);
+
+    legend.exit().remove();
+
+  });  
+};
+
+heatmapChart("{% static pic %}");
+
+$(document).ready(function(){
+    $(window).resize(function() {
+        var wdth=$(window).width();
+        heatmapChart("{% static pic %}");
+    });
+});
+//show sites start
+var t5 = [];
+{% for d in t5 %}
+t5.push("{{ d }}");
+{% endfor %}
+var n5 = [];
+{% for d in n5 %}
+n5.push("{{ d }}");
+{% endfor %}
+
+function show_sites(sites, color) {
+  var i;
+  for (i = 0; i < sites.length; i++) {
+    var site_label = document.createElement("a");
+    site_label.setAttribute('class', 'ui ' + color + ' circular label');
+    site_label.innerHTML = (i + 1).toString();
+    var des10 = sites[i];
+    site_label.setAttribute('target', "_parent");
+    site_label.setAttribute('data-position', "right center");
+    site_label.setAttribute('data-tooltip', des10);
+    document.getElementById('p1s10').appendChild(site_label);
+  }
+}
+
+show_sites(t5, 'orange');
+show_sites(n5, 'blue');
+//show sites end
+parent.p1load(picname, "{% static pic %}");
+</script>
+    </body>
+</html>
+

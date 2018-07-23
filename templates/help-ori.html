@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+        <script
+          src="https://code.jquery.com/jquery-3.1.1.min.js"
+          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+          crossorigin="anonymous"></script>
+        <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+        <title>search sample</title>
+    </head>
+
+    <body style="background-color:#1C1C1C;">
+        <div class="ui inverted segments">
+            <img class="ui fluid image" src="{% static "homepage.jpg" %}" alt="DNA homepage picture" >
+            <div class="ui huge attached stackable inverted menu">
+                <div class="ui container">
+                    <a class="active item">Editing</a>
+                    <a class="item" href="/barcode/TCGA-KL-8323-01A/">by barcode</a>
+                    <a class="item">ClinInfo</a>
+                    <a class="item">Download</a>
+                    <a class="item" href="/help/">Help</a>
+                    <a class="item">Contact</a>
+                    <a class="item" href="/admin/">Admin</a>
+                </div>
+            </div>
+
+            <div class="ui inverted segment">
+                <h1>HELP</h1>
+                <p>text</p>
+            </div>
+        </div>
+    </body>
+</html>

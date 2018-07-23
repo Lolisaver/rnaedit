@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}TCGA Hyper Editing Database{% endblock %}
+{% block headscript %}
+<!-- violin start -->
+<script src="https://cdn.plot.ly/plotly-1.32.0.min.js"></script>
+<!-- violin end -->
+{% endblock %}
+{% block content %}
+
+<div class="ui container">
+    <br>
+    <h1>About Us</h1>
+    <div class="ui divider"></div>
+    <h4>Sean Chun-Chang Chen, &nbsp;&nbsp;Ph.D.&nbsp;&nbsp;&nbsp;&nbsp;Assistant Professor</h4>
+    <h4>Email: </h4>
+    <img class="ui image" src="{% static "img/email.jpg" %}" alt="DNA homepage picture" >
+    <br> 
+    <h4>Graduate Institute of Biomedical Informatics </h4>
+    <h4>Taipei Medical University</h4>
+</div>
+<div class="violin_test">
+	<div id="graph"></div>
+</div>
+<script type="text/javascript">
+Plotly.d3.csv("{% static pic %}", function(err, rows){
+  
+  function unpack(rows, key) {
+  return rows.map(function(row) { return row[key]; });
+  }
+
+var data = [{
+  type: 'violin',
+  x: unpack(rows, 'cancer'),
+  y: unpack(rows, 'level'),
+  legendgroup: 'T',
+  scalegroup: 'T',
+  name: 'T',
+  side: 'negative',
+  box: {
+    visible: true
+  },
+  line: {
+    color: 'orange',
+    width: 2
+  },
+  meanline: {
+    visible: true
+  }
+}, {
+  type: 'violin',
+  x: unpack(rows, 'cancer'),
+  y: unpack(rows, 'level'),
+  legendgroup: 'N',
+  scalegroup: 'N',
+  name: 'N',
+  side: 'positive',
+  box: {
+    visible: true
+  },
+  line: {
+    color: 'blue',
+    width: 2
+  },
+  meanline: {
+    visible: true
+  }
+}]
+
+var layout = {
+  title: "Split Violin Plot",
+  yaxis: {
+    zeroline: false
+  },
+  violingap: 0,
+  violingroupgap: 0,
+  violinmode: "overlay",
+}
+
+Plotly.plot('graph', data, layout);
+});  
+</script>
+</div>
+{% endblock %}
+
+
+

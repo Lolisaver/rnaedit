@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--載入靜態資料庫-->
+		{% load static %}
+		<link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+		<script
+		src="https://code.jquery.com/jquery-3.1.1.min.js"
+		integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+		crossorigin="anonymous"></script>
+		<script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+		<script src="{% static "tablesort.js" %}"></script>
+		<script src="{% static "pagination.js" %}"></script>
+		<script src="{% static "validate_number.js" %}"></script>
+		<title>Editing Result</title>
+		{% load custom_tag %}
+	</head>
+	<body>
+		<!--放置網頁圖片-->
+		<img class="ui fluid image" src="{% static "homepage.jpg" %}" alt="DNA homepage picture" >
+		<!--網頁圖片下放功能選單-->
+		<div class="ui huge attached stackable inverted menu">
+			<div class="ui container">
+				<a class="item" href="/search/">Editing</a>
+				<a class="item">ClinInfo</a>
+				<a class="item">Download</a>
+				<a class="item">Help</a>
+				<a class="item">Contact</a>
+				<a class="item" href="/admin/">Admin</a>
+			</div>
+		</div>
+		<!--建置一個大區塊，裡面放搜尋結果的header、table和分頁-->
+		<div class="ui segments">
+			<!--小區塊，裡面放搜尋結果的heade，顯示使用者看他們是搜尋什麼東西-->
+			<div class="ui segment">
+				<div class="ui center aligned container">
+					<h2 class="ui header">Your search result for:</h2>
+					<h2 class="ui header">{{ bar }}</h2>
+				</div>
+			</div>
+
+			<!--小區塊，裡面放搜尋結果的table-->
+			<div class="ui segment">
+				<div class="ui horizontal list">
+					<div class="item">
+						<div class="ui menu">
+							<div class="ui simple dropdown item">
+								Show {{ datas_per_page }} rows
+								<i class="dropdown icon"></i>
+								<div class="menu">
+									{% with "10 25 50 100" as list %}
+										{% for i in list.split %}
+											{% if i == "datas_per_page" %}
+												<a class="disabled item">{{ i }} rows</a>
+											{% else %}
+												<a class="item" href="?{{ page_record }}&datas_per_page={{ i }}">{{ i }} rows</a>
+											{% endif %}
+										{% endfor %}
+									{% endwith %}
+								</div>
+							</div>
+							{% with "Chr,Site,Ref,Ed,Strand,SNP,Gene,Region,Location,Repeats,Conserve,miRNA-Gain,miRNA-Loss,EditedIn" as header_list %}
+								{% if has_sample_barcode %} 
+									<a class="item" href="/download_csv/?{{ page_record }}&{{ header_list}}&header={{ header_list }},Editing Level,Source">
+										Download
+									</a>
+								{% else %}
+									<a class="item" href="/download_csv/?{{ page_record }}&header={{ header_list }},Source">
+										Download
+									</a>
+								{% endif %}
+							{% endwith %}
+						</div>
+					</div>
+				</div>
+				<table class="ui blue striped celled selectable table" >
+					<!--此放table的header，header放的為搜尋結果的資料分類-->
+					<thead>
+						<tr>
+							<th class="center aligned">Chr</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=site">
+									Site
+									{% if current_sort == "site" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=ref">
+									Ref
+									{% if current_sort == "ref" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=ed">
+									Ed
+									{% if current_sort == "ed" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=is_forward">
+									Strand
+									{% if current_sort == "is_forward" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=snp_id">
+									SNP
+									{% if current_sort == "snp_id" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=gene">
+									Gene
+									{% if current_sort == "gene" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=utr">
+									Region
+									{% if current_sort == "utr" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=repetitive">
+									Location
+									{% if current_sort == "repetitive" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=repetitive">
+									Repeats
+									{% if current_sort == "repetitive" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=conserve">
+									Conserve
+									{% if current_sort == "conserve" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=mi_rna_gain">
+									miRNA-Gain
+									{% if current_sort == "mi_rna_gain" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=mi_rna_loss">
+									miRNA-Loss
+									{% if current_sort == "mi_rna_loss" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=num_of_edited_samples">
+									EditedIn
+									{% if current_sort == "num_of_edited_samples" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+							{% if has_sample_barcode %}
+								<th class="center aligned">
+									<a href="?{{ page_record }}&click_sort=level">	Editing Level
+										{% if current_sort == "level" %}
+											<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+									</a>
+								</th>
+							{% endif %}
+							<th class="center aligned">
+								<a href="?{{ page_record }}&click_sort=resource">
+									Source
+									{% if current_sort == "resource" %}
+										<i class="caret {{ sorted_direction }} icon"></i>
+									{% endif %}
+								</a>
+							</th>
+						</tr>
+					</thead>
+				<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+					<tbody>
+					      {% for editing_module in editing_modules %}
+					      
+					      <tr>
+					        <td class="center aligned">
+					        {{ editing_module.0.chromosome }}</td>
+					        <td class="center aligned">{{ editing_module.0.site }}</td>
+					        <td class="center aligned">{{ editing_module.0.ref }}</td>
+					        <td class="center aligned">{{ editing_module.0.ed }}</td>
+
+					        {% if editing_module.0.is_forward %}
+					          {% with strand="+" %}
+					            <td class="center aligned">{{ strand }}</td>
+					          {% endwith %}
+					        {% else %}
+					          {% with strand="-" %}
+					            <td class="center aligned">{{ strand }}</td>
+					          {% endwith %}
+					        {% endif %}
+
+					        {% if editing_module.0.snp_id != "NA" %}
+					        	<td class="center aligned">
+					        		<a class="mini ui green label" href="https://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs={{ editing_module.0.snp_id }}" data-inverted="" data-tooltip="Known SNP {{ editing_module.0.snp_id }}" data-position="top center" target="_blank">S</a>
+					        	</td>
+					        {% else %}
+					        	<td class="center aligned">
+					        		<a class="mini ui red label" data-inverted="" data-tooltip="Not in dbSNP" data-position="top center">S</a>
+					        	</td>
+					        {% endif %}
+
+					        <td class="center aligned">
+							{% with editing_module.0.gene|mysplit:"," as gene_list %}
+								{% for gene in gene_list %}
+								<p>{{ gene }}</p>
+								{% endfor %}
+							{% endwith %}
+							</td>
+
+					        <td class="center aligned">{{ editing_module.0.utr }}</td>
+					        <td class="center aligned">{{ editing_module.0.repetitive }}</td>
+					        <td class="center aligned">{{ editing_module.0.repetitive }}</td>
+					        <td class="center aligned">{{ editing_module.0.conserve }}</td>
+					        <td class="center aligned selectable">
+					        	<a class="medium ui label" href="/mi_rna_detail/">
+					        		{{ editing_module.0.mi_rna_gain }}
+					        	</a>
+					        </td>
+					        <td class="center aligned selectable">
+					        	<a class="medium ui label" href="/mi_rna_detail/">
+					        		{{ editing_module.0.mi_rna_loss }}
+					        	</a>
+					        </td>
+					    	<td class="center aligned selectable">
+					    		<a class="medium ui label" href="/editing_detail/?button=edited_in&chr={{ editing_module.0.chromosome }}&site={{ editing_module.0.site }}&{{ search_record }}">
+					    			{{ editing_module.0.num_of_edited_samples }}<br>({{ editing_module.0.edited_in_percent }} %)
+					    		</a>
+					    	</td>
+
+					        {% if has_sample_barcode %}
+					        <td class="center aligned selectable">
+								<a class="medium ui label" href="/editing_detail/?button=editing_level&chr={{ editing_module.0.chromosome }}&site={{ editing_module.0.site }}&{{ search_record }}">
+					        		{{ editing_module.1.level }}
+					        	</a>
+					        </td>
+					        {% endif %}
+
+					        {% if editing_module.0.resource == "RP" %}
+					        	<td class="center aligned"><a class="mini ui red label" data-inverted="" data-tooltip="RediPortal" data-position="top center">R</a></td>
+					        {% elif editing_module.0.resource == "HE" %}
+					        	<td class="center aligned"><a class="mini ui blue label" data-inverted="" data-tooltip="HyperEditing" data-position="top center">H</a></td>
+					        {% elif editing_module.0.resource == "B" %}
+					        	<td class="center aligned"><a class="mini ui yellow label" data-inverted="" data-tooltip="Both" data-position="top center">B</a></td>
+					        {% elif editing_module.0.resource == "U" %}
+					        	<td class="center aligned"><a class="mini ui grey label" data-inverted="" data-tooltip="Unknown" data-position="top center">U</a></td>
+					        {% endif %}
+					      </tr>
+					      {% endfor %}
+					</tbody>
+				<!--放置搜尋資料的最後一列，這邊我們一樣放的是跟header一樣的東西-->
+					<tfoot>
+						<tr>
+							<th class="center aligned"><b>Chr</b></th>
+							<th class="center aligned"><b>Site</b></th>
+							<th class="center aligned"><b>Ref</b></th>
+							<th class="center aligned"><b>Ed</b></th>
+							<th class="center aligned"><b>Strand</b></th>
+							<th class="center aligned"><b>SNP</b></th>
+							<th class="center aligned"><b>Gene</b></th>
+							<th class="center aligned"><b>Region</b></th>
+							<th class="center aligned"><b>Location</b></th>
+							<th class="center aligned"><b>Repeats</b></th>
+							<th class="center aligned"><b>Conserve</b></th>
+							<th class="center aligned"><b>miRNA-Gain</b></th>
+							<th class="center aligned"><b>miRNA-Loss</b></th>
+							<th class="center aligned"><b>EditedIn</b></th>
+							{% if has_sample_barcode %}
+							<th class="center aligned"><b>Editing Level</b></th>
+							{% endif %}
+							<th class="center aligned"><b>Source</b></th>
+						</tr>
+					</tfoot>
+				</table>
+
+				<!--如果搜尋的資料超過一頁的話執行以下程式碼-->
+				{% if editing_modules.has_other_pages %}
+				<div class="ui horizontal list">
+					<!--此item放可點選的分頁-->
+					<div class="item">
+		    			<div class="ui pagination menu">
+		    			<!--如果所在的分頁有上一頁的話執行以下指令-->
+		    			{% if editing_modules.has_previous %}
+		    				<!--使上一頁的按鈕可供點選，且導向上一頁-->
+							<a class="item" href="?page={{ editing_modules.number|add:-1 }}&{{ page_record }}" name="page">
+								<<
+							</a>
+						{% else %}
+							<!--若無上一頁則停止上一頁這個按鈕的功能-->
+							<div class="disabled item">
+								<<
+							</div>
+						{% endif %}	
+						<!--如果所在的頁碼<=5的話則執行以下指令-->		
+						{% if editing_modules.number <= 5 %}
+							<!--如果總頁數少於等於7的話執行以下指令，因為我這邊設計頁碼的格子為7格-->
+							{% if editing_modules.paginator.num_pages <= 7 %}
+								<!--對所有頁碼做迴圈for ..in-->
+								{% for i in editing_modules.paginator.page_range %}
+									<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+									{% if i == editing_modules.number %}
+										<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+									<!--若此業法非所在頁面的話，則讓按鈕為沒被按的樣子-->
+									{% else %}
+										<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+									{% endif %}
+								{% endfor %}
+							<!--如果總頁數大於7的話，執行以下指令，因為設計頁碼格子最多為7所以總頁數超過7的話必有某些個子要用來設計為...符號-->
+							{% else %}
+								<!--對頁碼做迴圈-->
+								{% for i in editing_modules.paginator.page_range %}
+									<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+									{% if i == editing_modules.number %}
+										<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+									<!--將小於等於5的頁碼都顯示出來，並且讓按鈕為沒被按的樣子-->
+									{% elif i <= 5 %}
+										<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+									{% endif %}
+								{% endfor %}
+								<!--此為省略中間頁碼的按鈕，沒有功能-->
+								<div class="disabled item">...</div>
+								<!--在省略中間頁碼的按鈕後加上最後一夜的頁碼的按鈕，使使用者方便找到最後一筆資料-->
+								<a class="item" href="?page={{ editing_modules.paginator.num_pages }}&{{ page_record }}" name="page">{{ editing_modules.paginator.num_pages }}</a>
+							{% endif %}
+						<!--如果所在頁碼在離最後頁碼四頁以內的話，執行以下指令-->
+						{% elif editing_modules.number > editing_modules.paginator.num_pages|add:-4 %}
+							<!--如果所在頁碼在離最後頁碼四頁以內的話，還是要顯示第一頁頁碼讓使用者方便瀏覽資料-->
+							<a class="item" href="?page=1&{{ page_record }}" name="page">1</a>
+							<!--除了第一頁以外，中間的頁碼全部用...替代-->
+							<div class="disabled item">...</div>
+							<!--對後四頁做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+							{% for i in editing_modules.paginator.page_range %}
+								{% if i == editing_modules.number %}
+									<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+								{% elif i >= editing_modules.paginator.num_pages|add:-4 %}
+									<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+								{% endif %}
+							{% endfor %}
+						<!--如果所在頁碼不在前五頁或後四頁的話，執行以下指令-->
+						{% else %}
+							<!--對所有頁碼做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+							{% for i in editing_modules.paginator.page_range %}
+								<!--所在頁碼在中間，但第一頁和省略頁還是要顯示出來(第一、二格）-->
+								{% if i == 1 %}
+									<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+									<div class="disabled item">...</div>
+								<!--如果此頁碼為所在頁碼，則給予按鈕被向下壓的感覺(第四格）-->
+								{% elif editing_modules.number == i %}
+									<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+								<!--如果此頁碼為所在頁碼的前後一頁的話，則讓按鈕顯示(第三、五格）-->
+								{% elif i < editing_modules.number|add:2 and i > editing_modules.number|add:-2 %}
+									<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+								<!--所在頁碼在中間，但最後一頁和省略頁還是要顯示出來(第六、七格）-->
+								{% elif i == editing_modules.paginator.num_pages %}
+									<div class="disabled item">...</div>
+									<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+						<!--如果所在的分頁有下一頁的話執行以下指令-->
+						{% if editing_modules.has_next %}
+							<!--使下一頁的按鈕可供點選，且導向下一頁-->
+							<a class="item" href="?page={{ editing_modules.number|add:1 }}&{{ page_record }}" name="page">>></a>
+						{% else %}
+							<!--若無下一頁則停止下一頁這個按鈕的功能-->
+							<div class="blue disabled item">>></div>
+						{% endif %}
+						</div>
+					</div>
+
+					<!--此item放可供搜尋的搜尋欄-->
+					<div class="item">
+						<form class="ui form" action="" method="get">
+							<!--用隱藏的欄位將此搜尋頁面的搜尋條件儲存起來，使用者輸入頁碼後一樣用此搜尋條件去找資料庫，只是最後回傳不同頁碼的結果-->
+							{% for key, value in search_request_dict.items %}
+								<input type="hidden" name="{{key}}" value="{{value}}">
+							{% endfor %}
+							<!--創建一個搜尋欄-->
+							<div class="ui action input">
+								<input type="text" id="page_input" style="ime-mode:disabled" placeholder="Page to..." name="page">
+								<!--使搜尋欄只能輸入數字，且數字不能大於最大頁碼-->
+								<script type="text/javascript">
+									var text = document.getElementById("page_input");
+									text.onkeyup = function(){
+										this.value=this.value.replace(/\D/g,'');
+										if(text.value>{{ editing_modules.paginator.num_pages }}){
+									  		text.value = {{ editing_modules.paginator.num_pages }};
+									  	}
+									}
+								</script>
+								<button class="ui button" type="submit">Go</button>
+							</div>
+						</form>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</body>
+</html>

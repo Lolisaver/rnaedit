@@ -1,0 +1,11 @@
+cancer,edin,is_tumor
+LGG,0.19,True
+UVM,1.25,True
+LGG,0.19,True
+PCPG,1.6400000000000001,True
+LGG,0.19,True
+PCPG,1.09,True
+HNSC,0.2,True
+LGG,0.19,True
+OV,0.26,True
+THCA,0.2,True
