@@ -138,6 +138,9 @@ div.tooltip
 
 var picname = "{{ img_src }}"; //p1
 
+var tumc = {{ tumc }};
+var norc = {{ norc }};
+
 
 var calcHeight = ({{ c_count }} + 1) * 42 + 50;
 
@@ -148,7 +151,7 @@ var margin = {top: 10, right: 10, bottom: 10, left: 10},
     width = $(window).width() - margin.left - margin.right,
     height = calcHeight - margin.top - margin.bottom,
     padding = 30,
-    labelWidth = 60;
+    labelWidth = 150;
 
 // Define the div for the tooltip
 var div = d3.select("#boxes").append("div")   
@@ -281,10 +284,10 @@ d3.csv("{% static pic %}", function(error,csv) {
 
         // draw box-and-whiskers plot
         if (tumorForCategory.length > 0){
-        drawCbox(svg, tumorForCategory, colToPlot = "edin", boxHeight = 18, boxY - 10, 't');
+        drawCbox(svg, tumorForCategory, boxHeight = 18, boxY - 10, 't');
         drawBoxes(svg, tumorForCategory, colToPlot = "p50", whiskerHeight = 14, boxHeight = 18, boxY - 10, boxNumber = 'tbox');}
         if (normalForCategory.length > 0){
-        drawCbox(svg, normalForCategory, colToPlot = "edin", boxHeight = 18, boxY + 10, 'n');
+        drawCbox(svg, normalForCategory, boxHeight = 18, boxY + 10, 'n');
         drawBoxes(svg, normalForCategory, colToPlot = "p50", whiskerHeight = 14, boxHeight = 18, boxY + 10, boxNumber = 'nbox');}
 
         // draw labels
@@ -426,28 +429,25 @@ function drawBoxes(svg, csv, colToPlot, whiskerHeight, boxHeight, boxY, category
 }
 
 
-function drawCbox(svg, csv, colToPlot, boxHeight, boxY, tn) {
+function drawCbox(svg, csv, boxHeight, boxY, tn) {
 
-    // make an array of the data to plot
+    var edin;
 
-    var data = csv.map(function(d) {
-          return +d[colToPlot];
-    });
-
-    var median = d3.quantile(data, .5);
     var filler;
     if (tn == 't'){
       filler = 'orange';
+      edin = csv.length / tumc;
     }else{
       filler = 'blue';
+      edin = csv.length / norc;
     }
 
     svg.append("rect")
         .attr("class", "colorbox")
         .attr("stroke", "black")
-        .attr("x", xScale(1.5) - (xScale(median) - xScale(0)) * 0.4)
+        .attr("x", xScale(1.5) - (xScale(edin) - xScale(0)) * 0.4)
         .attr("y", boxY - (boxHeight/2))
-        .attr("width", (xScale(median) - xScale(0)) * 0.4)
+        .attr("width", (xScale(edin) - xScale(0)) * 0.4)
         //.attr("opacity", )
         .attr("fill", filler)
         .attr("height", boxHeight);

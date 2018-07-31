@@ -1,8 +1,6 @@
 from django.shortcuts import render
-from ..models import Site
-from django.core.paginator import Paginator, EmptyPage
+from web.models import Site
 from copy import deepcopy
-from django.db.models import Avg
 from random import randint
 
 
@@ -16,20 +14,18 @@ def search(request):
 # 看看使用者在一開始的搜尋欄中有輸入哪些值
     if "chromosome_field" in request.GET:
         has_chromosome = (request.GET["chromosome_field"] != "0")
-        has_region_start = (len(request.GET["region_start"]) != 0)
-        has_region_end = (len(request.GET["region_end"]) != 0)
         has_gene_name = (len(request.GET["gene_name_field"]) != 0)
         has_genomic_region = (request.GET["genomic_region_field"] != "any")
         has_aa_change = (request.GET["aa_change_field"] != "any")
         has_rep = (request.GET["repeat_field"] != "any")
-        criterias = {}
+        criterias = {'redi': 1}
         if has_chromosome:
             chromosome = "chr" + request.GET["chromosome_field"]
             criterias['chromo'] = chromosome
-        if has_region_start:
-            criterias['loc__gte'] = int(request.GET["region_start"])
-        if has_region_end:
-            criterias['loc__lte'] = int(request.GET["region_end"])
+        for f in ['gain__gte', 'gain__lte', 'loss__gte', 'loss__lte', 'loc__gte', 'loc__lte', 
+        'siteanno__has_cox__gte', 'siteanno__has_cox__lte']:
+            if request.GET[f] != '':
+            	criterias[f] = int(request.GET[f])
         if has_gene_name:
             gene_name = request.GET["gene_name_field"]
             criterias['gene'] = gene_name
@@ -78,30 +74,5 @@ def search(request):
             editing_site_module_set = editing_site_module_set.order_by(current_sort)
         search_request_dict["sorted_direction"] = "up"
         search_request_dict["current_sort"] = current_sort
-    #看使用者選取要多少筆資料為一頁，預設為50
-    if 'datas_per_page' in request.GET:
-        datas_per_page = int(request.GET["datas_per_page"])
-    else:
-        datas_per_page = 10
-    paginator = Paginator(editing_site_module_set[:100000], datas_per_page)
-    try:
-        editing_site_modules = paginator.page(page)
-        print('check 1')
-    except EmptyPage:
-        editing_site_modules = paginator.page(paginator.num_pages)
-    rediLevels = [x.redilevel_set.aggregate(Avg('level'))['level__avg'] for x in editing_site_modules]
-    rediLevels = [2 if x == None else x for x in rediLevels]
-    page_record = []
-    search_record = []
-    for key in search_request_dict:
-        if key != "page" and key != "click_sort":
-            page_record.append(key + "=" + search_request_dict[key])
-            if key != "current_sort" and key != "sorted_direction":
-                search_record.append(key + "=" + search_request_dict[key])
-    page_record = "&".join(page_record)
-    search_record = "&".join(search_record)
-    return render(request, "editing_level_result_table.html", {"editing_modules": editing_site_modules,\
-         "page_record": page_record, "search_record": search_record, "search_request_dict": search_request_dict,\
-         "datas_per_page": datas_per_page, "sorted_direction": search_request_dict["sorted_direction"],\
-         "current_sort": search_request_dict["current_sort"], 'rl': rediLevels, 'pic': pic,
+    return render(request, "editing_level_result_table.html", {'pic': pic,
          'cri': criterias, 'rd': rd})

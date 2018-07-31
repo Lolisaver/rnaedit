@@ -3,7 +3,6 @@ from ..models import Site
 from django.core.paginator import Paginator, EmptyPage
 from copy import deepcopy
 from django.db.models import Avg
-from random import randint
 
 
 def embed_sites(request):
@@ -16,20 +15,18 @@ def embed_sites(request):
 # 看看使用者在一開始的搜尋欄中有輸入哪些值
     if "chromosome_field" in request.GET:
         has_chromosome = (request.GET["chromosome_field"] != "0")
-        has_region_start = (len(request.GET["region_start"]) != 0)
-        has_region_end = (len(request.GET["region_end"]) != 0)
         has_gene_name = (len(request.GET["gene_name_field"]) != 0)
         has_genomic_region = (request.GET["genomic_region_field"] != "any")
         has_aa_change = (request.GET["aa_change_field"] != "any")
         has_rep = (request.GET["repeat_field"] != "any")
-        criterias = {}
+        criterias = {'redi': 1}
         if has_chromosome:
             chromosome = "chr" + request.GET["chromosome_field"]
             criterias['chromo'] = chromosome
-        if has_region_start:
-            criterias['loc__gte'] = int(request.GET["region_start"])
-        if has_region_end:
-            criterias['loc__lte'] = int(request.GET["region_end"])
+        for f in ['gain__gte', 'gain__lte', 'loss__gte', 'loss__lte', 'loc__gte', 'loc__lte', 
+        'siteanno__has_cox__gte', 'siteanno__has_cox__lte']:
+            if request.GET[f] != '':
+                criterias[f] = int(request.GET[f])
         if has_gene_name:
             gene_name = request.GET["gene_name_field"]
             criterias['gene'] = gene_name
@@ -105,4 +102,4 @@ def embed_sites(request):
          "page_record": page_record, "search_record": search_record, "search_request_dict": search_request_dict,\
          "datas_per_page": datas_per_page, "sorted_direction": search_request_dict["sorted_direction"],\
          "current_sort": search_request_dict["current_sort"], 'rl': rediLevels,
-         'cri': criterias})
+         'cri': criterias, 'target_frame': request.GET['frame']})

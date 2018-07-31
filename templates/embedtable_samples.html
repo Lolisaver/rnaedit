@@ -1,0 +1,471 @@
+{% load mathfilters %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static "semantic/dist/semantic.min.css" %}">
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+    <script src="{% static "semantic/dist/semantic.min.js" %}"></script>
+	<style type="text/css">
+	.Consolas{
+	font-family: Consolas;
+	}
+	</style>
+	<script type="text/javascript">
+	  function resize() {
+        parent.alterHeight($("#main_table").height() + 50, "samples_embed")
+      }
+	</script>
+</head>
+
+<body onload="resize();">
+
+<div class="ui basic segment" id="main_table">
+<div class="ui horizontal list">
+	<div class="item">
+		<div class="ui menu">
+			<div class="ui simple dropdown item">
+				Show {{ datas_per_page }} rows
+				<i class="dropdown icon"></i>
+				<div class="menu">
+					{% with "10 25 50 100" as list %}
+						{% for i in list.split %}
+							{% if i == "datas_per_page" %}
+								<a class="disabled item">{{ i }} rows</a>
+							{% else %}
+								<a class="item" href="?{{ page_record }}&datas_per_page={{ i }}">{{ i }} rows</a>
+							{% endif %}
+						{% endfor %}
+					{% endwith %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<table class="ui blue striped celled selectable table">
+	<!--此放table的header，header放的為搜尋結果的資料分類-->
+	<thead>
+		<tr>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=sample_barcode">
+					Barcode
+					{% if current_sort == "sample_barcode" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=valid_site">
+					n.Editing Sites
+					{% if current_sort == "valid_site" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=tumor_tissue_site">
+					Tissue
+					{% if current_sort == "tumor_tissue_site" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=is_tumor">
+					Tumor
+					{% if current_sort == "is_tumor" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=cancer_type">
+					Cancer
+					{% if current_sort == "cancer_type" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=is_male">
+					Gender
+					{% if current_sort == "is_male" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=days_to_birth">
+					Age
+					{% if current_sort == "days_to_birth" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=year_of_initial_pathologic_diagnosis">
+					Diagnosis Year
+					{% if current_sort == "year_of_initial_pathologic_diagnosis" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned sorted descending">
+				<a href="?{{ search_record }}&click_sort=days_to_death">
+					Days to Death
+					{% if current_sort == "days_to_death" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=tnm_categories_pathologic_T">
+					T/N/M Pathologic
+					{% if current_sort == "tnm_categories_pathologic_T" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=stage_event_pathologic_stage">
+					Pathologic Stage
+					{% if current_sort == "stage_event_pathologic_stage" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=histological_type">
+					Histological Type
+					{% if current_sort == "histological_type" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+		</tr>
+	</thead>
+	<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+	<tbody>
+		{% for sample in samples %}
+		<tr>
+		    <td class="center aligned"><a href="/barcode/?sample_barcode_field={{ sample }}" target="_parent">{{ sample }}</a></td>
+		    <td class="center aligned">{{ sample.valid_site }}</td>
+		    <td class="center aligned">{{ sample.tumor_tissue_site }}</td>
+		    <td class="center aligned">{{ sample.is_tumor|yesno:"tumor,normal,unknown" }}</td>
+		    <td class="center aligned">{{ sample.cancer_type }}</td>
+		    <td class="center aligned">{{ sample.is_male|yesno:"male,female,unknown" }}</td>
+		    <td class="center aligned">{{ sample.days_to_birth|div:-365|floatformat:0 }}</td>
+		    <td class="center aligned">{{ sample.year_of_initial_pathologic_diagnosis }}</td>
+		    <td class="center aligned">
+{% if sample.days_to_death == -1 %}
+alive
+{% else %}
+{{ sample.days_to_death }}
+{% endif %}
+			</td>
+		    <td class="center aligned">
+		    {{ sample.tnm_categories_pathologic_T }} /
+		    {{ sample.tnm_categories_pathologic_N }} /
+		    {{ sample.tnm_categories_pathologic_M }}
+			</td>
+			 {% if sample.stage_event_pathologic_stage == "IS" %}
+			 <td class="center aligned">--</td>
+			{% else %}
+		    <td class="center aligned">{{ sample.stage_event_pathologic_stage }}</td>
+		    {% endif %}
+			<td class="center aligned">{{ sample.histological_type }}</td>
+		</tr>
+		{% empty %}
+		<tr class="center aligned"><td colspan="11"><h2 class="ui orange header">No results found</h2>
+		{{ search_record }}</td></tr>
+		{% endfor %}
+	</tbody>
+	<!--放置搜尋資料的最後一列，這邊我們一樣放的是跟header一樣的東西，不同的事此列有設置按鈕可以對資料做篩選-->
+	<tfoot>
+	<tr>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=sample_barcode">
+				Barcode
+				{% if current_sort == "sample_barcode" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+				<a href="?{{ search_record }}&click_sort=valid_site">
+					n.Editing Sites
+					{% if current_sort == "valid_site" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=cancer_type">
+				Tissue
+				{% if current_sort == "cancer_type" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=tumor_tissue_site">
+				Tumor
+				{% if current_sort == "tumor_tissue_site" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=cancer_type">
+				Cancer
+				{% if current_sort == "cancer_type" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=tumor_tissue_site">
+				Gender
+				{% if current_sort == "tumor_tissue_site" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=normal_A">
+				Age
+				{% if current_sort == "normal_A" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=normal_G">
+				Diagnosis Year
+				{% if current_sort == "normal_G" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned sorted descending">
+			<a href="?{{ search_record }}&click_sort=editing_freq">
+				Days to Death
+				{% if current_sort == "editing_freq" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=total_A">
+				T/N/M Pathologic
+				{% if current_sort == "total_A" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=total_G">
+				Pathologic Stage
+				{% if current_sort == "total_G" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+		<th class="center aligned">
+			<a href="?{{ search_record }}&click_sort=total_freq">
+				Histological Type
+				{% if current_sort == "total_freq" %}
+					<i class="caret {{ sorted_direction }} icon"></i>
+				{% endif %}
+			</a>
+		</th>
+	</tr>
+	</tfoot>
+</table>
+
+<!--如果搜尋的資料超過一頁的話執行以下程式碼-->
+{% if samples.has_other_pages %}
+<div class="ui horizontal list">
+	<!--此item放可點選的分頁-->
+    <div class="item">
+		<div class="ui pagination menu">
+			<!--如果所在的分頁有上一頁的話執行以下指令-->
+			{% if samples.has_previous %}
+				<!--使上一頁的按鈕可供點選，且導向上一頁-->
+				<a class="item" href="?page={{ samples.number|add:-1 }}&{{ search_record }}" name="page">
+					<<
+				</a>
+			{% else %}
+				<!--若無上一頁則停止上一頁這個按鈕的功能-->
+				<div class="disabled item">
+					<<
+				</div>
+			{% endif %}	
+			<!--如果所在的頁碼<=5的話則執行以下指令-->
+			{% if samples.number <= 5 %}
+				<!--如果總頁數少於等於7的話執行以下指令，因為我這邊設計頁碼的格子為7格-->
+				{% if samples.paginator.num_pages <= 7 %}
+					<!--對所有頁碼做迴圈for ..in-->
+					{% for i in samples.paginator.page_range %}
+						<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+						{% if i == samples.number %}
+							<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+						<!--若此頁碼非所在頁面的話，則讓按鈕為沒被按的樣子-->
+						{% else %}
+							<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+						{% endif %}
+					{% endfor %}
+				<!--如果總頁數大於7的話，執行以下指令，因為設計頁碼格子最多為7所以總頁數超過7的話必有某些個子要用來設計為...符號-->
+				{% else %}
+					<!--對頁碼做迴圈-->
+					{% for i in samples.paginator.page_range %}
+						<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+						{% if i == samples.number %}
+							<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+						<!--將小於等於5的頁碼都顯示出來，並且讓按鈕為沒被按的樣子-->
+						{% elif i <= 5 %}
+							<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+						{% endif %}
+					{% endfor %}
+					<!--此為省略中間頁碼的按鈕，沒有功能-->
+					<div class="disabled item">...</div>
+					<!--在省略中間頁碼的按鈕後加上最後一夜的頁碼的按鈕，使使用者方便找到最後一筆資料-->
+					<a class="item" href="?page={{ samples.paginator.num_pages }}&{{ search_record }}" name="page">{{ samples.paginator.num_pages }}</a>
+				{% endif %}
+			<!--如果所在頁碼在離最後頁碼四頁以內的話，執行以下指令-->
+			{% elif samples.number > samples.paginator.num_pages|add:-4 %}
+				<!--如果所在頁碼在離最後頁碼四頁以內的話，還是要顯示第一頁頁碼讓使用者方便瀏覽資料-->
+				<a class="item" href="?page=1&{{ search_record }}" name="page">1</a>
+				<!--除了第一頁以外，中間的頁碼全部用...替代-->
+				<div class="disabled item">...</div>
+				<!--對後四頁做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+				{% for i in samples.paginator.page_range %}
+					{% if i == samples.number %}
+						<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+					{% elif i >= samples.paginator.num_pages|add:-4 %}
+						<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+					{% endif %}
+				{% endfor %}
+			<!--如果所在頁碼不在前五頁或後四頁的話，執行以下指令-->
+			{% else %}
+				<!--對所有頁碼做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+				{% for i in samples.paginator.page_range %}
+					<!--所在頁碼在中間，但第一頁和省略頁還是要顯示出來(第一、二格）-->
+					{% if i == 1 %}
+						<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+						<div class="disabled item">...</div>
+					<!--如果此頁碼為所在頁碼，則給予按鈕被向下壓的感覺(第四格）-->
+					{% elif samples.number == i %}
+						<a class="active item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+					<!--如果此頁碼為所在頁碼的前後一頁的話，則讓按鈕顯示(第三、五格）-->
+					{% elif i < samples.number|add:2 and i > samples.number|add:-2 %}
+						<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+					<!--所在頁碼在中間，但最後一頁和省略頁還是要顯示出來(第六、七格）-->
+					{% elif i == samples.paginator.num_pages %}
+						<div class="disabled item">...</div>
+						<a class="item" href="?page={{ i }}&{{ search_record }}" name="page">{{ i }}</a>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+			<!--如果所在的分頁有下一頁的話執行以下指令-->
+			{% if samples.has_next %}
+				<!--使下一頁的按鈕可供點選，且導向下一頁-->
+				<a class="item" href="?page={{ samples.number|add:1 }}&{{ search_record }}" name="page">>></a>
+			{% else %}
+				<!--若無下一頁則停止下一頁這個按鈕的功能-->
+				<div class="blue disabled item">>></div>
+			{% endif %}
+		</div>
+	</div>
+
+	<!--此item放可供搜尋的搜尋欄-->
+	<div class="item">
+		<form class="ui floated form" action="" method="get">
+			<!--用隱藏的欄位將此搜尋頁面的搜尋條件儲存起來，使用者輸入頁碼後一樣用此搜尋條件去找資料庫，只是最後回傳不同頁碼的結果-->
+			{% for key, value in search_request_dict.items %}
+				<input type="hidden" name="{{key}}" value="{{value}}">
+			{% endfor %}
+			<!--創建一個搜尋欄-->
+			<div class="ui  floated action input">
+				<input type="text" id="page_input" style="ime-mode:disabled" placeholder="Page to..." name="page">
+				<!--使搜尋欄只能輸入數字，且數字不能大於最大頁碼-->
+				<script type="text/javascript">
+					var text = document.getElementById("page_input");
+					text.onkeyup = function(){
+						this.value=this.value.replace(/\D/g,'');
+						if(text.value>{{ samples.paginator.num_pages }}){
+					  		text.value = {{ samples.paginator.num_pages }};
+					  	}
+					}
+				</script>
+				<button class="ui button" type="submit">Go</button>
+			</div>
+		</form>
+	</div>
+{% endif %}
+</div>
+</div>
+
+<div class="ui modal fullscreen p1big">
+  <i class="close icon"></i>
+  <div class="header">
+    Top 10 Edited in {{ cancer }}
+  </div>
+  <div id="p1img" class="ui fluid image"></div>
+  <div class="actions">
+    <div class="ui deny button">
+      OK
+    </div>
+  </div>
+</div>
+<div class="ui modal fullscreen p2big">
+  <i class="close icon"></i>
+  <div class="header">
+    Top 10 Editing Frequency in {{ cancer }}
+  </div>
+  <div id="p2img" class="ui fluid image"></div>
+  <div class="actions">
+    <div class="ui deny button">
+      OK
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+$('.dropdown').dropdown({
+  label: {
+    duration: 0,
+  },
+  debug: true,
+  performance: true,
+});
+$('.ui.embed').embed();
+$(".p1big").modal({
+	closable: true
+});
+$('#pointp1').prev('div').children().children().attr("scrolling", "yes");
+$('#pointp2').prev('div').children().children().attr("scrolling", "yes");
+function p1pop() {
+	$(function(){
+		$(".fullscreen.p1big").modal('show');
+	});
+}
+function p2pop() {
+	$(function(){
+		$(".fullscreen.p2big").modal('show');
+	});
+}
+function p1load(target_id, img_src) {
+	document.getElementById(target_id + "loader").setAttribute("class", "ui disabled loader");
+	var DOM_img = document.createElement("img");
+	DOM_img.src = img_src;
+	//document.getElementById(target_id + 'img').appendChild(DOM_img);
+}
+
+
+</script>
+</body>
+</html>

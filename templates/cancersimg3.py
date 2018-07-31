@@ -21,11 +21,12 @@ def cancersimg3(request, cancer, rd, lr):
         t5_details = SET.objects.filter(cancer=cancer).order_by(*order)[:10]
         t5 = list(t5_details.values_list('site', flat=True))
         tt1 = ll.objects.filter(site__in=t5, sample__cancer_type=cancer)
-        ttl = tt1.values_list('site', 'level', 'sample__is_tumor')
+        ttl = tt1.values_list('site', 'level')
         secs = list(ttl)
         p1 = pd.DataFrame(secs)
-        p1.columns = ['cancer', 'p50', 'is_tumor']
+        p1.columns = ['cancer', 'edin']
         n5_details = []
+        v_type = 'combine'
     else:
         t5_details = SET.objects.filter(cancer=cancer).order_by(*order)[:5]
         t5 = list(t5_details.values_list('site', flat=True))
@@ -43,8 +44,11 @@ def cancersimg3(request, cancer, rd, lr):
         pn[0] += '_N'
         p1 = pt.append(pn)
         p1.columns = ['cancer', 'p50', 'is_tumor']
+        #v_type = 'combine'
+        v_type = 'split'
     p1_name = '/var/www/rnaedit/static/csv/cancers/img3/d%s.csv' % (rd)
     p1['p50'] = p1['p50'].astype(float)
+    # p1['edin'] -= np.random.rand(p1.shape[0]) / 1000
     p1.to_csv(p1_name, index=False)
     pic = p1_name.split('static/')[1]
     return render(request, "embedboxcancer.html", {'pic': pic, 'img_src': img_src, 

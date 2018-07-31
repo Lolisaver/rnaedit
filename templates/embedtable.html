@@ -18,434 +18,562 @@
     		}
     	}
         function resize() {
-        parent.document.getElementById(targetFrameId).height = document.getElementById("main_table").scrollHeight; //將子頁面高度傳到父頁面框架
-    }
+        parent.alterHeight($("#main_table").height() + 50, "{{ target_frame }}")
+    	}
     </script>
+	<style type="text/css">
+
+	  circle {
+	    stroke: #AAAAAA;
+	    stroke-width:1px;   
+	  }
+
+	  circle:hover {
+	    stroke: #AAAAAA;
+	    stroke-width:2px;             
+	  }
+
+	  circle.legend {
+	    stroke: #AAAAAA;
+	    stroke-width:2px;   
+	    fill: #FFFFFF;
+	  }
+
+	  text.mono {
+	    font-size: 9pt;
+	    font-family: Consolas, courier;
+	    fill: #222222;
+	  }
+
+	</style>
+	<!-- Heatmap starts -->
+	<script src="http://d3js.org/d3.v3.js"></script>
+	<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+	<script src="{% static "js/levelcircle.js" %}"></script>
+	<!-- Heatmap ends -->
 </head>
 <body onload="resize();">
 <!--建置一個大區塊，裡面放搜尋結果的header、table和分頁-->
-<div class="ui segments" id="main_table">
-	<div class="ui segment">
-		<div class="ui horizontal list">
-			<div class="item">
-				<div class="ui menu">
-					<div class="ui simple dropdown item">
-						Show {{ datas_per_page }} rows
-						<i class="dropdown icon"></i>
-						<div class="menu">
-							{% with "10 25 50 100" as list %}
-								{% for i in list.split %}
-									{% if i == "datas_per_page" %}
-										<a class="disabled item">{{ i }} rows</a>
-									{% else %}
-										<a class="item" href="?{{ page_record }}&datas_per_page={{ i }}">{{ i }} rows</a>
-									{% endif %}
-								{% endfor %}
-							{% endwith %}
-						</div>
+<div class="ui basic segment" id="main_table">
+	<div class="ui horizontal list">
+		<div class="item">
+			<div class="ui menu">
+				<div class="ui simple dropdown item">
+					Show {{ datas_per_page }} rows
+					<i class="dropdown icon"></i>
+					<div class="menu">
+						{% with "10 25 50 100" as list %}
+							{% for i in list.split %}
+								{% if i == "datas_per_page" %}
+									<a class="disabled item">{{ i }} rows</a>
+								{% else %}
+									<a class="item" href="?{{ page_record }}&datas_per_page={{ i }}">{{ i }} rows</a>
+								{% endif %}
+							{% endfor %}
+						{% endwith %}
 					</div>
-					{% with "Chr,Site,Ref,Ed,Strand,SNP,Gene,Region,Location,Repeats,Conserve,miRNA-Gain,miRNA-Loss,EditedIn" as header_list %}
-						<a class="item" href="/download_csv/?{{ page_record }}&header={{ header_list }},Source">
-							Download
-						</a>
-					{% endwith %}
 				</div>
+				{% with "Chr,Site,Ref,Ed,Strand,SNP,Gene,Region,Location,Repeats,Conserve,miRNA-Gain,miRNA-Loss,EditedIn" as header_list %}
+					<a class="item" href="/download_csv/?{{ page_record }}&header={{ header_list }},Source">
+						Download
+					</a>
+				{% endwith %}
 			</div>
 		</div>
-		<table class="ui blue striped celled selectable table" >
-			<!--此放table的header，header放的為搜尋結果的資料分類-->
-			<thead>
-				<tr>
-					<th class="center aligned">
-						<h4 class="ui blue header" data-tooltip="Chromosome">Chr</h4>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=site" data-tooltip="Genomic position of GRCh38/hg38">
-							Position
-							{% if current_sort == "site" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=ref" data-tooltip="Reference A/T → edited G/C">
-							Ref → Ed
-							{% if current_sort == "ref" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=strand" data-tooltip="Edited on forward(+) / reverse(-) strand">
-							Strand
-							{% if current_sort == "strand" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=snp_id" data-tooltip="Source of SNP">
-							SNP
-							{% if current_sort == "snp_id" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=snp_id" data-tooltip="Source of SNP">
-							SNP2
-							{% if current_sort == "snp_id" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=gene" data-tooltip="Gene symbol from Gencode">
-							Gene
-							{% if current_sort == "gene" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=utr" data-tooltip="Genic region from Gencode">
-							GenRegion
-							{% if current_sort == "utr" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=repetitive"  data-tooltip="Repeat region annotated from RepeatMasker: ALU, HERVK, SVA, L1 or Non">
-							Repeat
-							{% if current_sort == "repetitive" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=repetitive" data-tooltip="Repeat subfamily annotated from RepeatMasker">
-							Subfamily
-							{% if current_sort == "repetitive" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=conserve" data-tooltip="Evolutionary conservation from 100 vertebrates: conserved(positive) / fast-evolving(negative)">
-							phyloP
-							{% if current_sort == "conserve" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">miR
-						<a href="?{{ page_record }}&click_sort=gain" data-tooltip="Gain of miRNA:mRNA when edited">
-							Gain
-							{% if current_sort == "gain" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a> / 
-						<a href="?{{ page_record }}&click_sort=loss" data-tooltip="Loss of miRNA:mRNA when edited">
-							Loss
-							{% if current_sort == "loss" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=num_of_edited_samples" data-tooltip="Number of samples with editing frequency >=0.01">
-							n.Samples
-							{% if current_sort == "num_of_edited_samples" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-					<th class="center aligned">
-						<a href="?{{ page_record }}&click_sort=resource" data-tooltip="Source of editing sites">
-							Source
-							{% if current_sort == "resource" %}
-								<i class="caret {{ sorted_direction }} icon"></i>
-							{% endif %}
-						</a>
-					</th>
-				</tr>
-			</thead>
-		<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
-			<tbody>
-			      {% for editing_module in editing_modules %}
-			      <tr>
-			        <td class="center aligned">{{ editing_module.chromo }}</td>
-			        <td class="center aligned">{{ editing_module.loc }}</td>
-			        <td class="center aligned">{{ editing_module.ref }} → {{ editing_module.ed }}</td>
-
-			        {% if editing_module.strand %}
-			          {% with strand="+" %}
-			            <td class="center aligned">{{ strand }}</td>
-			          {% endwith %}
-			        {% else %}
-			          {% with strand="-" %}
-			            <td class="center aligned">{{ strand }}</td>
-			          {% endwith %}
-			        {% endif %}
-
-			        <td class="center aligned">
-			        <script type="text/javascript">var snp = true;</script>
-			        {% if editing_module.snp_id != "." %}
-			        	<script type="text/javascript">snp = false;</script>
-		        		<a class="mini ui green label" href="https://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs={{ editing_module.snp_id }}" data-inverted="" data-tooltip="dbSNP: {{ editing_module.snp_id }}" data-position="top center" target="_blank">S</a>
-			        {% endif %}
-			        {% if editing_module.gg != "." %}
-			        	<script type="text/javascript">snp = false;</script>
-			        	<a href="http://gnomad.broadinstitute.org/variant/{{ editing_module.hg19chr }}-{{ editing_module.hg19loc }}-{{ editing_module.hg19str|yesno:"A,T" }}-{{ editing_module.hg19str|yesno:"G,C" }}" class="mini ui pink label" data-inverted="" target="_blank"  data-tooltip="Gnomad Genome (Allele Frequency: {{ editing_module.gg }})">G</a>
-			        {% endif %}
-			        {% if editing_module.exac != "." %}
-			        	<script type="text/javascript">snp = false;</script>
-			        	<a href="http://exac.broadinstitute.org/variant/{{ editing_module.hg19chr }}-{{ editing_module.hg19loc }}-{{ editing_module.hg19str|yesno:"A,T" }}-{{ editing_module.hg19str|yesno:"G,C" }}" class="mini ui orange label" data-inverted="" target="_blank"  data-tooltip="exac03 (Allele Frequency: {{ editing_module.exac }})">E</a>
-			        {% endif %}
-			        <span id='snp{{ forloop.counter }}'></span>
-			        <script type="text/javascript">
-			        	if (snp){
-						var nosnp = document.createElement("a");
-						nosnp.innerHTML='-'
-						nosnp.setAttribute('data-inverted', '')
-						nosnp.setAttribute('data-tooltip', 'no known SNP')
-			        	document.getElementById("snp{{ forloop.counter }}").appendChild(nosnp);}
-			        </script>
-			    	</td>
-					<td class="center aligned">
-					<script type="text/javascript">var snp2 = true;</script>
-			        {% if editing_module.clin != "." %}
-			        	<script type="text/javascript">snp2 = false;</script>
-			        	<a class="mini ui purple label" href="https://www.ncbi.nlm.nih.gov/clinvar/{{ editing_module.clin }}" data-inverted="" data-tooltip="Clinvar: {{ editing_module.clin }}" data-position="top center" target="_blank">C</a>
-			        {% endif %}
-			        {% if editing_module.intervar != "." %}
-			        	<script type="text/javascript" language="javascript">
-			        		snp2 = false;
-						    function postUrl(url, data00, data01, data02, data03) {
-						        document.body.innerHTML = '<form id="fake" action=' + url
-						                            + ' method="post" target="_blank">'
-						                            + '<input type="hidden" name="build" value="hg38_update">'
-						                            + '<input type="hidden" name="queryType" value="position">'
-						                            + '<input type="hidden" name="chr" value="' + data00.substring(3) + '">'
-						                            + '<input type="hidden" name="pos" value="' + data01 + '">'
-						                            + '<input type="hidden" name="ref" value="' + data02 + '">'
-						                            + '<input type="hidden" name="alt" value="' + data03 + '">'
-						                            + '</form>';
-						        document.getElementById("fake").submit();
-						    }
-						</script>
-			        	<a class="mini ui blue label" href='javascript:void(0);' onclick = postUrl('http://wintervar.wglab.org/results.php','{{ editing_module.chromo }}','{{ editing_module.loc }}','{{ editing_module.ref }}','{{ editing_module.ed }}'); data-inverted="" target="_blank" data-tooltip="Intervar">I</a>
-			        {% endif %}
-			        <span id='snpb{{ forloop.counter }}'></span>
-			        <script type="text/javascript">
-			        	if (snp2){
-						var nosnp = document.createElement("a");
-						//nosnp.className='mini ui label';
-						nosnp.innerHTML='-'
-						nosnp.setAttribute('data-inverted', '')
-						nosnp.setAttribute('data-tooltip', 'no known SNP')
-			        	document.getElementById("snpb{{ forloop.counter }}").appendChild(nosnp);}
-			        </script>				
-					</td>
-			        <td class="center aligned">
-						<p>{{ editing_module.gene }}</p>
-					</td>
-
-			        <td class="center aligned">{{ editing_module.region }}</td>
-			        {% if editing_module.location != "" %}
-			        	<td class="center aligned">{{ editing_module.location }}</td>
-			        	<td class="center aligned">{{ editing_module.repetitive }}</td>
-			        {% else %}
-			        	<td class="center aligned">Non</td>
-			        	<td class="center aligned">--</td>
-			        {% endif %}
-			        <td class="center aligned">
-			        	{{ editing_module.conserve|floatformat:2 }}
-			        </td>
-
-
-			        <td class="center aligned">
-			        	{% if editing_module.gain != 0 %}<a class="medium ui label" href="/mi_rna_detail/?site={{ editing_module }}" target="_parent">{{ editing_module.gain }}</a>
-			        	{% else %}0{% endif %} / 
-			        	{% if editing_module.loss != 0 %}<a class="medium ui label" href="/mi_rna_detail/?site={{ editing_module }}#loss">{{ editing_module.loss }}</a target="_parent">
-			        	{% else %}0{% endif %}
-			        </td>
-			    	<td class="center aligned selectable">
-			    		{% if editing_module.num_of_edited_samples != 0 %}
-			    		<a class="medium ui label" href="/editing_detail/?button=edited_in&site={{ editing_module }}&{{ search_record }}" target="_parent">
-			    			{{ editing_module.num_of_edited_samples }}
-			    		</a>
-			    		{% else %}0{% endif %}
-			    	</td>
-			        {% if editing_module.redi  %}
-			        	<td class="center aligned"><a id="rltg{{ forloop.counter0 }}" class="mini ui red label" data-inverted="" data-position="top center">R</a></td>
-			        {% elif editing_module.hyper %}
-			        	<td class="center aligned"><a class="mini ui blue label" data-inverted="" data-tooltip="HyperEditing" data-position="top center">H</a></td>
-			        
-			        {% endif %}
-			      </tr>
-			      {% if forloop.last %}
-			      <script type="text/javascript">var pagelen = {{ forloop.counter }};</script>
-			      {% endif %}
-			      {% empty %}
-			      <tr class="center aligned"><td colspan="15"><h2 class="ui orange header">No results found</h2></td></tr>
-			      {% endfor %}
-			</tbody>
-		<!--放置搜尋資料的最後一列，這邊我們一樣放的是跟header一樣的東西-->
-			<tfoot>
-				<tr>
-					<th class="center aligned"><b>Chr</b></th>
-					<th class="center aligned"><b>Position</b></th>
-					<th class="center aligned"><b>Ref → Ed</b></th>
-					<th class="center aligned"><b>Strand</b></th>
-					<th class="center aligned"><b>SNP</b></th>
-					<th class="center aligned"><b>SNP2</b></th>
-					<th class="center aligned"><b>Gene</b></th>
-					<th class="center aligned"><b>Region</b></th>
-					<th class="center aligned"><b>Repeat</b></th>
-					<th class="center aligned"><b>SubFamily</b></th>
-					<th class="center aligned"><b>phyloP</b></th>
-					<th class="center aligned"><b>miRGain/Loss</b></th>
-					<th class="center aligned"><b>EditedIn</b></th>
-					<th class="center aligned"><b>Source</b></th>
-				</tr>
-			</tfoot>
-		</table>
-
-		<!--如果搜尋的資料超過一頁的話執行以下程式碼-->
-		{% if editing_modules.has_other_pages %}
-		<div class="ui horizontal list">
-			<!--此item放可點選的分頁-->
-			<div class="item">
-    			<div class="ui pagination menu">
-    			<!--如果所在的分頁有上一頁的話執行以下指令-->
-    			{% if editing_modules.has_previous %}
-    				<!--使上一頁的按鈕可供點選，且導向上一頁-->
-					<a class="item" href="?page={{ editing_modules.number|add:-1 }}&{{ page_record }}" name="page">
-						<<
-					</a>
-				{% else %}
-					<!--若無上一頁則停止上一頁這個按鈕的功能-->
-					<div class="disabled item">
-						<<
-					</div>
-				{% endif %}	
-				<!--如果所在的頁碼<=5的話則執行以下指令-->		
-				{% if editing_modules.number <= 5 %}
-					<!--如果總頁數少於等於7的話執行以下指令，因為我這邊設計頁碼的格子為7格-->
-					{% if editing_modules.paginator.num_pages <= 7 %}
-						<!--對所有頁碼做迴圈for ..in-->
-						{% for i in editing_modules.paginator.page_range %}
-							<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
-							{% if i == editing_modules.number %}
-								<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-							<!--若此業法非所在頁面的話，則讓按鈕為沒被按的樣子-->
-							{% else %}
-								<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-							{% endif %}
-						{% endfor %}
-					<!--如果總頁數大於7的話，執行以下指令，因為設計頁碼格子最多為7所以總頁數超過7的話必有某些個子要用來設計為...符號-->
-					{% else %}
-						<!--對頁碼做迴圈-->
-						{% for i in editing_modules.paginator.page_range %}
-							<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
-							{% if i == editing_modules.number %}
-								<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-							<!--將小於等於5的頁碼都顯示出來，並且讓按鈕為沒被按的樣子-->
-							{% elif i <= 5 %}
-								<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-							{% endif %}
-						{% endfor %}
-						<!--此為省略中間頁碼的按鈕，沒有功能-->
-						<div class="disabled item">...</div>
-						<!--在省略中間頁碼的按鈕後加上最後一夜的頁碼的按鈕，使使用者方便找到最後一筆資料-->
-						<a class="item" href="?page={{ editing_modules.paginator.num_pages }}&{{ page_record }}" name="page">{{ editing_modules.paginator.num_pages }}</a>
+	</div>
+<table class="ui blue striped celled accordion table" >
+	<!--此放table的header，header放的為搜尋結果的資料分類-->
+	<thead>
+		<tr>
+			<th class="center aligned">
+				<h4 class="ui blue header" data-tooltip="Chromosome">Chr</h4>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=site" data-tooltip="Genomic position of GRCh38/hg38">
+					Position
+					{% if current_sort == "site" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
 					{% endif %}
-				<!--如果所在頁碼在離最後頁碼四頁以內的話，執行以下指令-->
-				{% elif editing_modules.number > editing_modules.paginator.num_pages|add:-4 %}
-					<!--如果所在頁碼在離最後頁碼四頁以內的話，還是要顯示第一頁頁碼讓使用者方便瀏覽資料-->
-					<a class="item" href="?page=1&{{ page_record }}" name="page">1</a>
-					<!--除了第一頁以外，中間的頁碼全部用...替代-->
-					<div class="disabled item">...</div>
-					<!--對後四頁做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=ref" data-tooltip="Reference A/T → edited G/C">
+					Ref → Ed
+					{% if current_sort == "ref" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=strand" data-tooltip="Edited on forward(+) / reverse(-) strand">
+					Strand
+					{% if current_sort == "strand" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">SNP</th>
+			<th class="center aligned">SNP 2</th>
+			<th class="center aligned">SNP 3</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=gene" data-tooltip="Gene symbol from Gencode">
+					Gene
+					{% if current_sort == "gene" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=utr" data-tooltip="Genic region from Gencode">
+					GenRegion
+					{% if current_sort == "utr" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=repetitive"  data-tooltip="Repeat region annotated from RepeatMasker: ALU, HERVK, SVA, L1 or Non">
+					Repeat
+					{% if current_sort == "repetitive" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=repetitive" data-tooltip="Repeat subfamily annotated from RepeatMasker">
+					Subfamily
+					{% if current_sort == "repetitive" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=conserve" data-tooltip="Evolutionary conservation from 100 vertebrates: conserved(positive) / fast-evolving(negative)">
+					phyloP
+					{% if current_sort == "conserve" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">miR
+				<a href="?{{ page_record }}&click_sort=gain" data-tooltip="Gain of miRNA:mRNA when edited">
+					Gain
+					{% if current_sort == "gain" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a> / 
+				<a href="?{{ page_record }}&click_sort=loss" data-tooltip="Loss of miRNA:mRNA when edited">
+					Loss
+					{% if current_sort == "loss" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=siteanno__edint" data-tooltip="Number of samples with editing frequency >=0.01">
+					(T/N).Samples 
+					{% if current_sort == "siteanno__edint" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+			<!--
+			<th class="center aligned">
+				<a href="?{{ page_record }}&click_sort=resource" data-tooltip="Source of editing sites">
+					Source
+					{% if current_sort == "resource" %}
+						<i class="caret {{ sorted_direction }} icon"></i>
+					{% endif %}
+				</a>
+			</th>
+		    -->
+		</tr>
+	</thead>
+<!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+	<tbody>
+	      {% for site in editing_modules %}
+	      <tr class="title">
+	        <td class="center aligned">{{ site.chromo }}</td>
+	        <td class="center aligned">{{ site.loc }}</td>
+	        {% if site.strand %}
+	        	<td class="center aligned">A → G</td>
+	            <td class="center aligned">+</td>
+	        {% else %}
+	        	<td class="center aligned">T → C</td>
+	            <td class="center aligned">-</td>
+	        {% endif %}
+	        <td class="center aligned">
+	        <script type="text/javascript">var snp = true;</script>
+	        {% if site.snp_id != "." %}
+	        	<script type="text/javascript">snp = false;</script>
+        		<a class="mini ui green label" href="https://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs={{ site.snp_id }}" data-inverted="" data-tooltip="dbSNP: {{ site.snp_id }}" data-position="top center" target="_blank">S</a>
+	        {% endif %}
+	        {% if site.gg != "." %}
+	        	<script type="text/javascript">snp = false;</script>
+	        	<a href="http://gnomad.broadinstitute.org/variant/{{ site.hg19chr }}-{{ site.hg19loc }}-{{ site.hg19str|yesno:"A,T" }}-{{ site.hg19str|yesno:"G,C" }}" class="mini ui pink label" data-inverted="" target="_blank"  data-tooltip="Gnomad Genome (Allele Frequency: {{ site.gg }})">G</a>
+	        {% endif %}
+	        {% if site.exac != "." %}
+	        	<script type="text/javascript">snp = false;</script>
+	        	<a href="http://exac.broadinstitute.org/variant/{{ site.hg19chr }}-{{ site.hg19loc }}-{{ site.hg19str|yesno:"A,T" }}-{{ site.hg19str|yesno:"G,C" }}" class="mini ui olive label" data-inverted="" target="_blank"  data-tooltip="exac03 (Allele Frequency: {{ site.exac }})">E</a>
+	        {% endif %}
+	        <span id='snp{{ forloop.counter }}'></span>
+	        <script type="text/javascript">
+	        	if (snp){
+				var nosnp = document.createElement("a");
+				nosnp.innerHTML='-'
+				nosnp.setAttribute('data-inverted', '')
+				nosnp.setAttribute('data-tooltip', 'no known SNP')
+	        	document.getElementById("snp{{ forloop.counter }}").appendChild(nosnp);}
+	        </script>
+	    	</td>
+			<td class="center aligned">
+	        {% if site.clin != "." %}
+	        	<a class="mini ui purple label" href="https://www.ncbi.nlm.nih.gov/clinvar/{{ site.clin }}" data-inverted="" data-tooltip="Clinvar: {{ site.clin }}" data-position="top center" target="_blank">CV</a>
+	        {% endif %}
+	        {% if site.cosmic != "." %}
+	        	<a class="mini ui brown label" href="https://cancer.sanger.ac.uk/cosmic/ncv/overview?id={{ site.cosmic|slice:"4:" }}" data-inverted="" data-tooltip="cosmic85: {{ site.cosmic }}" data-position="top center" target="_blank">CM</a>
+	        {% endif %}
+	        {% if site.intervar != "." %}
+	        	<script type="text/javascript" language="javascript">
+				    function postUrl(url, data00, data01, data02, data03) {
+				        document.body.innerHTML = '<form id="fake" action=' + url
+				                            + ' method="post" target="_blank">'
+				                            + '<input type="hidden" name="build" value="hg38_update">'
+				                            + '<input type="hidden" name="queryType" value="position">'
+				                            + '<input type="hidden" name="chr" value="' + data00.substring(3) + '">'
+				                            + '<input type="hidden" name="pos" value="' + data01 + '">'
+				                            + '<input type="hidden" name="ref" value="' + data02 + '">'
+				                            + '<input type="hidden" name="alt" value="' + data03 + '">'
+				                            + '</form>';
+				        $('form').submit(function (evt) {evt.preventDefault();});
+				        document.getElementById("fake").submit();
+				    }
+				</script>
+	        	<a class="mini ui blue label" href='javascript:void(0);' onclick = postUrl('http://wintervar.wglab.org/results.php','{{ site.chromo }}','{{ site.loc }}','{{ site.ref }}','{{ site.ed }}'); data-inverted="" target="_blank" data-tooltip="Intervar">I</a>
+	        {% endif %}
+	        <span id='snpb{{ forloop.counter }}'></span>			
+			</td>
+			<td class="center aligned">
+			{% if site.redi  %}
+	        	<a id="rltg{{ forloop.counter0 }}" class="mini ui red label" data-inverted="" data-position="top center">R</a>
+	        {% elif site.hyper %}
+	        	<a class="mini ui blue label" data-inverted="" data-tooltip="HyperEditing" data-position="top center">H</a>
+	        {% endif %}
+	        {% if site.siteanno.radar %}
+	        	<a href="http://rnaedit.com/search/?species=human&chr={{ site.hg19chr|slice:"3:" }}&start={{ site.hg19loc }}&end={{ site.hg19loc }}&gene=" class="mini ui orange label" data-inverted="" target="_blank"  data-tooltip="RADAR">RA</a>
+	        {% endif %}
+	        {% if site.siteanno.darned %}
+	        	<a href="https://darned.ucc.ie/HSresultR/?csrfmiddlewaretoken=q3Yghk8f4eCLXyfhoCgtJEWWyGStZgCb&hs_assembly=19&hs_chrom={{ site.hg19chr|slice:"3:" }}&hs_start={{ site.hg19loc }}&hs_end={{ site.hg19loc }}&hs_seqtype=A&hs_exotype=A&hs_flank=0&hs_source=" class="mini ui green label" data-inverted="" target="_blank"  data-tooltip="DARNED">D</a>
+	        {% endif %}
+			</td>
+	        <td class="center aligned">
+				<p>{{ site.gene }}</p>
+			</td>
+
+	        <td class="center aligned">{{ site.region }}</td>
+	        {% if site.location != "" %}
+	        	<td class="center aligned">{{ site.location }}</td>
+	        	<td class="center aligned">{{ site.repetitive }}</td>
+	        {% else %}
+	        	<td class="center aligned">Non</td>
+	        	<td class="center aligned">--</td>
+	        {% endif %}
+	        <td class="center aligned">
+	        	{{ site.conserve|floatformat:2 }}
+	        </td>
+
+
+	        <td class="center aligned">
+	        	{% if site.gain != 0 %}<a class="medium ui label" href="/mi_rna_detail/?site={{ site }}" target="_parent">{{ site.gain }}</a>
+	        	{% else %}0{% endif %} / 
+	        	{% if site.loss != 0 %}<a class="medium ui label" href="/mi_rna_detail/?site={{ site }}#loss" target="_parent">{{ site.loss }}</a>
+	        	{% else %}0{% endif %}
+	        </td>
+	    	<td class="center aligned selectable">
+	    		{% if site.siteanno.edint != 0 %}
+	    		<a class="medium ui label" href="/editing_detail/?button=edited_in&site={{ site }}&{{ search_record }}" target="_parent">
+	    			{{ site.siteanno.edint }}
+	    		</a>
+	    		{% else %}0{% endif %} / 
+	    		{% if site.siteanno.edinn != 0 %}
+	    		<a class="medium ui label" href="/editing_detail/?button=edited_in&site={{ site }}&{{ search_record }}" target="_parent">
+	    			{{ site.siteanno.edinn }}
+	    		</a>
+	    		{% else %}0{% endif %}
+	    	</td>
+	      </tr>
+	      <div class="content">
+	        <tr>
+	          <td colspan="14" class="transition hidden">  
+<!-- tabs start -->
+<div class="ui top attached tabular menu">
+<a class="item active" data-tab="first">Level</a>
+<a class="item" data-tab="second">Level norm</a>
+<a class="item" data-tab="third">miRNA Gain({{ site.gain }}) / Loss({{ site.loss }})</a>
+<a class="item" data-tab="fourth">Survival analysis ({{ site.siteanno.has_cox }})</a>
+</div>
+<div class="ui bottom attached tab segment active" data-tab="first">
+<div id="chart_{{ forloop.counter }}"></div>
+<script type="text/javascript">
+var data1 = [];
+var data2 = [];
+{% for exp in site.siteedintn_set.all %}
+{% if exp.tumor == 1 %}
+  var block = {'day': 1, 
+               'hour': cam2num['{{ exp.cancer }}'], 
+               'value': {{ exp.p50p }} / 100,
+               'edin': ({{ exp.edin5p }} / 100)};
+  data2.push(block);
+  var block = {'day': 1, 
+               'hour': cam2num['{{ exp.cancer }}'], 
+               'value': {{ exp.p50 }},
+               'edin': ({{ exp.edin5 }} / {{ exp.cancer.tumorSample}})};
+  data1.push(block);
+{% else %}
+  var block = {'day': 2, 
+               'hour': cam2num['{{ exp.cancer }}'], 
+               'value': {{ exp.p50p }} / 100,
+               'edin': ({{ exp.edin5p }} / 100)};
+  data2.push(block);
+  var block = {'day': 2, 
+               'hour': cam2num['{{ exp.cancer }}'], 
+               'value': {{ exp.p50 }},
+               'edin': ({{ exp.edin5 }} / {{ exp.cancer.normalSample}})};
+  data1.push(block);
+{% endif %}
+if (block['hour'] != cam2num['ALLL'] & (block['edin'] > 0)){
+
+}
+{% endfor %}
+if (data1.length > 0){
+heatmapChart(data1, "chart_{{ forloop.counter }}");
+}else{
+$("#chart_{{ forloop.counter }}").text('no editing level in this site.')
+}
+</script>
+</div>
+
+<div class="ui bottom attached tab segment" data-tab="second">
+<div id="chart_n{{ forloop.counter }}"></div>
+<script type="text/javascript">
+if (data2.length > 0){
+heatmapChart(data2, "chart_n{{ forloop.counter }}");
+}else{
+$("#chart_n{{ forloop.counter }}").text('no editing level in this site.')
+}
+</script>
+</div>
+
+
+<div class="ui bottom attached tab center aligned segment" data-tab="third">
+{% if site.gain != 0 %}
+<div class="ui big buttons">
+<a href="/mi_rna_detail/?site={{ site }}">
+<button class="ui yellow button">Binds</button>
+</a>
+<div class="or" data-text="{{ site.gain }}"></div>
+<a href="/mirna_by_site/{{ site }}/g/">
+<button class="ui yellow button">miRNAs</button>
+</a>
+</div>
+<div class="ui left pointing large yellow label">Gain</div>
+{% endif %}
+{% if site.loss != 0 %}
+<div class="ui right pointing large olive label">Loss</div>
+<div class="ui big buttons">
+<a href="/mi_rna_detail/?site={{ site }}#loss">
+<button class="ui olive button">Binds</button>
+</a>
+<div class="or" data-text="{{ site.loss }}"></div>
+<a href="/mirna_by_site/{{ site }}/l/">
+<button class="ui olive button">miRNAs</button>
+</a>
+</div>
+{% endif %}
+
+
+</div>
+</div>
+<div class="ui bottom attached tab segment" data-tab="fourth">
+{% if site.siteanno.has_cox > 0 %}
+	<div class="ui labeled button" tabindex="0">
+	  <div class="ui button">
+	    <i class="chart line icon"></i><a href="/cox/{{ site }}/" target="_blank">Survival analysis results</a>
+	  </div>
+	  <a class="ui basic label">
+	    {{ site.siteanno.has_cox }}
+	  </a>
+	</div>
+{% else %}
+<div>This site is not in any survival analysis.</div>
+{% endif %}
+</div>
+<!-- tabs end -->
+	          </td>
+	        </tr>
+	      </div>
+	      {% if forloop.last %}
+	      <script type="text/javascript">var pagelen = {{ forloop.counter }};</script>
+	      {% endif %}
+	      {% empty %}
+	      <tr class="center aligned"><td colspan="15"><h2 class="ui orange header">No results found</h2></td></tr>
+	      {% endfor %}
+	</tbody>
+<!--放置搜尋資料的最後一列，這邊我們一樣放的是跟header一樣的東西-->
+	<tfoot>
+		<tr>
+			<th class="center aligned"><b>Chr</b></th>
+			<th class="center aligned"><b>Position</b></th>
+			<th class="center aligned"><b>Ref → Ed</b></th>
+			<th class="center aligned"><b>Strand</b></th>
+			<th class="center aligned"><b>SNP</b></th>
+			<th class="center aligned"><b>SNP 2</b></th>
+			<th class="center aligned"><b>SNP 3</b></th>
+			<th class="center aligned"><b>Gene</b></th>
+			<th class="center aligned"><b>Region</b></th>
+			<th class="center aligned"><b>Repeat</b></th>
+			<th class="center aligned"><b>ReFamily</b></th>
+			<th class="center aligned"><b>phyloP</b></th>
+			<th class="center aligned"><b>miRGain/Loss</b></th>
+			<th class="center aligned"><b>EditedIn</b></th>
+			<!--<th class="center aligned"><b>Source</b></th>-->
+		</tr>
+	</tfoot>
+</table>
+
+	<!--如果搜尋的資料超過一頁的話執行以下程式碼-->
+	{% if editing_modules.has_other_pages %}
+	<div class="ui horizontal list">
+		<!--此item放可點選的分頁-->
+		<div class="item">
+			<div class="ui pagination menu">
+			<!--如果所在的分頁有上一頁的話執行以下指令-->
+			{% if editing_modules.has_previous %}
+				<!--使上一頁的按鈕可供點選，且導向上一頁-->
+				<a class="item" href="?page={{ editing_modules.number|add:-1 }}&{{ page_record }}" name="page">
+					<<
+				</a>
+			{% else %}
+				<!--若無上一頁則停止上一頁這個按鈕的功能-->
+				<div class="disabled item">
+					<<
+				</div>
+			{% endif %}	
+			<!--如果所在的頁碼<=5的話則執行以下指令-->		
+			{% if editing_modules.number <= 5 %}
+				<!--如果總頁數少於等於7的話執行以下指令，因為我這邊設計頁碼的格子為7格-->
+				{% if editing_modules.paginator.num_pages <= 7 %}
+					<!--對所有頁碼做迴圈for ..in-->
 					{% for i in editing_modules.paginator.page_range %}
+						<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
 						{% if i == editing_modules.number %}
 							<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-						{% elif i >= editing_modules.paginator.num_pages|add:-4 %}
+						<!--若此業法非所在頁面的話，則讓按鈕為沒被按的樣子-->
+						{% else %}
 							<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
 						{% endif %}
 					{% endfor %}
-				<!--如果所在頁碼不在前五頁或後四頁的話，執行以下指令-->
+				<!--如果總頁數大於7的話，執行以下指令，因為設計頁碼格子最多為7所以總頁數超過7的話必有某些個子要用來設計為...符號-->
 				{% else %}
-					<!--對所有頁碼做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+					<!--對頁碼做迴圈-->
 					{% for i in editing_modules.paginator.page_range %}
-						<!--所在頁碼在中間，但第一頁和省略頁還是要顯示出來(第一、二格）-->
-						{% if i == 1 %}
-							<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-							<div class="disabled item">...</div>
-						<!--如果此頁碼為所在頁碼，則給予按鈕被向下壓的感覺(第四格）-->
-						{% elif editing_modules.number == i %}
+						<!--如果此頁碼等於目前所在的頁碼的話，使這個頁碼按鈕有被向下按的感覺-->
+						{% if i == editing_modules.number %}
 							<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-						<!--如果此頁碼為所在頁碼的前後一頁的話，則讓按鈕顯示(第三、五格）-->
-						{% elif i < editing_modules.number|add:2 and i > editing_modules.number|add:-2 %}
-							<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
-						<!--所在頁碼在中間，但最後一頁和省略頁還是要顯示出來(第六、七格）-->
-						{% elif i == editing_modules.paginator.num_pages %}
-							<div class="disabled item">...</div>
+						<!--將小於等於5的頁碼都顯示出來，並且讓按鈕為沒被按的樣子-->
+						{% elif i <= 5 %}
 							<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
 						{% endif %}
 					{% endfor %}
+					<!--此為省略中間頁碼的按鈕，沒有功能-->
+					<div class="disabled item">...</div>
+					<!--在省略中間頁碼的按鈕後加上最後一夜的頁碼的按鈕，使使用者方便找到最後一筆資料-->
+					<a class="item" href="?page={{ editing_modules.paginator.num_pages }}&{{ page_record }}" name="page">{{ editing_modules.paginator.num_pages }}</a>
 				{% endif %}
-				<!--如果所在的分頁有下一頁的話執行以下指令-->
-				{% if editing_modules.has_next %}
-					<!--使下一頁的按鈕可供點選，且導向下一頁-->
-					<a class="item" href="?page={{ editing_modules.number|add:1 }}&{{ page_record }}" name="page">>></a>
-				{% else %}
-					<!--若無下一頁則停止下一頁這個按鈕的功能-->
-					<div class="blue disabled item">>></div>
-				{% endif %}
-				</div>
-			</div>
-
-			<!--此item放可供搜尋的搜尋欄-->
-			<div class="item">
-				<form class="ui form" action="" method="get">
-					<!--用隱藏的欄位將此搜尋頁面的搜尋條件儲存起來，使用者輸入頁碼後一樣用此搜尋條件去找資料庫，只是最後回傳不同頁碼的結果-->
-					{% for key, value in search_request_dict.items %}
-						<input type="hidden" name="{{key}}" value="{{value}}">
-					{% endfor %}
-					<!--創建一個搜尋欄-->
-					<div class="ui action input">
-						<input type="text" id="page_input" style="ime-mode:disabled" placeholder="Page to..." name="page">
-						<!--使搜尋欄只能輸入數字，且數字不能大於最大頁碼-->
-						<script type="text/javascript">
-							var text = document.getElementById("page_input");
-							text.onkeyup = function(){
-								this.value=this.value.replace(/\D/g,'');
-								if(text.value>{{ editing_modules.paginator.num_pages }}){
-							  		text.value = {{ editing_modules.paginator.num_pages }};
-							  	}
-							}
-						</script>
-						<button class="ui button" type="submit">Go</button>
-					</div>
-				</form>
-				<script type="text/javascript">
-					var rl = {{ rl }};
-					var i;
-					for (i = 0; i < pagelen; i++) { 
-						if (rl[i] != 2){
-			        	document.getElementById("rltg" + i).setAttribute('data-tooltip', 'REDI Freq: ' + Math.round(rl[i] * 100) / 100);
-			        	}
-					}
-					
-				</script>
+			<!--如果所在頁碼在離最後頁碼四頁以內的話，執行以下指令-->
+			{% elif editing_modules.number > editing_modules.paginator.num_pages|add:-4 %}
+				<!--如果所在頁碼在離最後頁碼四頁以內的話，還是要顯示第一頁頁碼讓使用者方便瀏覽資料-->
+				<a class="item" href="?page=1&{{ page_record }}" name="page">1</a>
+				<!--除了第一頁以外，中間的頁碼全部用...替代-->
+				<div class="disabled item">...</div>
+				<!--對後四頁做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+				{% for i in editing_modules.paginator.page_range %}
+					{% if i == editing_modules.number %}
+						<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+					{% elif i >= editing_modules.paginator.num_pages|add:-4 %}
+						<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+					{% endif %}
+				{% endfor %}
+			<!--如果所在頁碼不在前五頁或後四頁的話，執行以下指令-->
+			{% else %}
+				<!--對所有頁碼做迴圈，如果頁碼為所在頁面的話則給予按鈕被向下壓的感覺-->
+				{% for i in editing_modules.paginator.page_range %}
+					<!--所在頁碼在中間，但第一頁和省略頁還是要顯示出來(第一、二格）-->
+					{% if i == 1 %}
+						<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+						<div class="disabled item">...</div>
+					<!--如果此頁碼為所在頁碼，則給予按鈕被向下壓的感覺(第四格）-->
+					{% elif editing_modules.number == i %}
+						<a class="active item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+					<!--如果此頁碼為所在頁碼的前後一頁的話，則讓按鈕顯示(第三、五格）-->
+					{% elif i < editing_modules.number|add:2 and i > editing_modules.number|add:-2 %}
+						<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+					<!--所在頁碼在中間，但最後一頁和省略頁還是要顯示出來(第六、七格）-->
+					{% elif i == editing_modules.paginator.num_pages %}
+						<div class="disabled item">...</div>
+						<a class="item" href="?page={{ i }}&{{ page_record }}" name="page">{{ i }}</a>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+			<!--如果所在的分頁有下一頁的話執行以下指令-->
+			{% if editing_modules.has_next %}
+				<!--使下一頁的按鈕可供點選，且導向下一頁-->
+				<a class="item" href="?page={{ editing_modules.number|add:1 }}&{{ page_record }}" name="page">>></a>
+			{% else %}
+				<!--若無下一頁則停止下一頁這個按鈕的功能-->
+				<div class="blue disabled item">>></div>
+			{% endif %}
 			</div>
 		</div>
-		{% endif %}
+
+		<!--此item放可供搜尋的搜尋欄-->
+		<div class="item">
+			<form class="ui form" action="" method="get">
+				<!--用隱藏的欄位將此搜尋頁面的搜尋條件儲存起來，使用者輸入頁碼後一樣用此搜尋條件去找資料庫，只是最後回傳不同頁碼的結果-->
+				{% for key, value in search_request_dict.items %}
+					<input type="hidden" name="{{key}}" value="{{value}}">
+				{% endfor %}
+				<!--創建一個搜尋欄-->
+				<div class="ui action input">
+					<input type="text" id="page_input" style="ime-mode:disabled" placeholder="Page to..." name="page">
+					<!--使搜尋欄只能輸入數字，且數字不能大於最大頁碼-->
+					<script type="text/javascript">
+						var text = document.getElementById("page_input");
+						text.onkeyup = function(){
+							this.value=this.value.replace(/\D/g,'');
+							if(text.value>{{ editing_modules.paginator.num_pages }}){
+						  		text.value = {{ editing_modules.paginator.num_pages }};
+						  	}
+						}
+					</script>
+					<button class="ui button" type="submit">Go</button>
+				</div>
+			</form>
+			<script type="text/javascript">
+				var rl = {{ rl }};
+				var i;
+				for (i = 0; i < pagelen; i++) { 
+					if (rl[i] != 2){
+		        	document.getElementById("rltg" + i).setAttribute('data-tooltip', 'REDI Freq: ' + Math.round(rl[i] * 100) / 100);
+		        	}
+				}
+				
+			</script>
+		</div>
 	</div>
+	{% endif %}
 </div>
+
 <script type="text/javascript">
 function p1pop() {
 	$(function(){
@@ -462,5 +590,7 @@ function p1load(target_id, img_src) {
 	DOM_img.src = img_src;
 	document.getElementById(target_id).appendChild(DOM_img);
 }
+$('.ui.accordion').accordion();
+$('.menu .item').tab();
 </script>
 </body>

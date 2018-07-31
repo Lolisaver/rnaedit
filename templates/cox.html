@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}REdiC: Cancer RNA Editing Database{% endblock %}
+{% block headscript %}
+<!-- Heatmap starts -->
+<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/heatmap.css" %}">
+<script src="{% static "js/heatmap.js" %}"></script>
+<!-- Heatmap ends -->
+<script src="http://d3js.org/d3.v3.js"></script>
+<style type="text/css">
+.Consolas{
+font-family: Consolas;
+}
+</style>
+{% load mathfilters %}
+{% endblock %}
+{% block content %}
+<div class="ui basic segment">
+  <div class="ui center aligned container">
+    <h1 class="ui header">Cox Regression Results for {{ site }}</h1>
+  </div>
+</div>
+<div class="ui container" id="page">
+  <table class="ui blue striped celled accordion table">
+    <!--此放table的header，header放的為搜尋結果的資料分類-->
+    <thead>
+      <tr>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=cancer">
+            cancer
+            {% if current_sort == "cancer" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=coeff">
+            coeff
+            {% if current_sort == "coeff" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=p">
+            p
+            {% if current_sort == "p" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=fdr">
+            fdr
+            {% if current_sort == "fdr" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">KM plot</th>
+      </tr>
+    </thead>
+    <!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
+    <tbody>
+      {% for cox in coxes %}
+      <tr class="title {% if cox.fdr < 0.1 %}error{% endif %}">
+          <td class="center aligned">{{ cox.cancer }}</td>
+          <td class="center aligned">{{ cox.coeff|floatformat:3 }}</td>
+          <td class="center aligned">{{ cox.p|floatformat:3 }}</td>
+          <td class="center aligned">{{ cox.fdr|floatformat:3 }}</td>
+          <td class="center aligned">
+            <a class="ui label" href="/km/{{ cox.cancer }}/{{ site }}/0.2/" target="_blank">
+              <i class="chart line icon"></i>
+            </a>
+          </td>
+      </tr>  
+      {% empty %}
+      <tr class="center aligned"><td colspan="11"><h2 class="ui orange header">No results found</h2></td></tr>      
+      {% endfor %}
+
+    </tbody>
+    <!--放置搜尋資料的最後一列，這邊我們一樣放的是跟header一樣的東西，不同的事此列有設置按鈕可以對資料做篩選-->
+    <tfoot>
+    <tr>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=cancer">
+            cancer
+            {% if current_sort == "cancer" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=coeff">
+            coeff
+            {% if current_sort == "coeff" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=p">
+            p
+            {% if current_sort == "p" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">
+          <a href="?{{ search_record }}&click_sort=fdr">
+            fdr
+            {% if current_sort == "fdr" %}
+              <i class="caret {{ sorted_direction }} icon"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th class="center aligned">KM plot</th>
+    </tr>
+    </tfoot>
+  </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+</script>
+{% endblock %}

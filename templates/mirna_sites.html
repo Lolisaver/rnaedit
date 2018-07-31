@@ -8,10 +8,17 @@
 <script src="{% static "js/heatmap.js" %}"></script>
 <!-- Heatmap ends -->
 <script src="http://d3js.org/d3.v3.js"></script>
+<style type="text/css">
+  .ui.mywide.embed {
+    padding-bottom: 0%;
+  }
+</style>
 {% endblock %}
 {% block content %}
-<div class="ui center aligned container">
-  <h1>{{ mir }}</h1> 
+<div class="ui basic segment">
+  <div class="ui center aligned container">
+    <h1>{{ mir }}</h1> 
+  </div>
 </div>
 <div id="chart_heat" class="ui fluid center aligned container"></div>
 <script type="text/javascript">
@@ -25,15 +32,23 @@ var data = [];
   {% endif %}
   data.push(block);
 {% endfor %}
-heatmapChart(data, 
-  "chart_heat",
-  $(window).width() * 0.75,
-  $(window).width() * 0.09);
+if (data.length > 0){
+  heatmapChart(data, "chart_heat", $(window).width() * 0.7, $(window).width() * 0.1);
+}
 </script>
-<span id="gain_part">
-<div class="ui center aligned container">
-	<h2>Gain Sites</h2>	
+<div class="ui basic segment">
+  <div class="ui center aligned container">
+	  <h2>Gain Sites</h2>	
+    <div class="ui negative message" id="no_gain" style="display: none;">
+      <i class="close icon"></i>
+      <div class="header">
+        No Results!
+      </div>
+      <p>There are no more miRNAs binded when this site is edited.</p>
+    </div>
+  </div>
 </div>
+<span id="gain_part">
 <div class="ui grid">
   <div class="eight wide column">
   	<h3 class="ui center aligned header" onclick="p1pop('p1')">Top 10 Edited Sites in Tumor</h3>
@@ -41,8 +56,9 @@ heatmapChart(data,
       <div class="ui active dimmer" id="p1loader">
         <div class="ui massive text loader">Loading</div>
       </div>
-  	  <div class="ui embed" data-url="/img/sites/4/{'gain_mir': '{{ mir }}'}/p1/{{ rd.0 }}/">
+  	  <div class="ui embed" data-url="/img/sites/5/{'gain_mir': '{{ mir }}'}/p1/{{ rd.0 }}/">
       </div>
+      <span id='pointp1'></span>
       </div>
 	</div>
 
@@ -54,40 +70,50 @@ heatmapChart(data,
     </div>  
   	<div class="ui embed" data-url="/img/sites/3/{'gain_mir': '{{ mir }}'}/p2/{{ rd.0 }}/">
 	  </div>
+    <span id='pointp2'></span>
     </div>
   </div>
 </div>
-<div class="ui embed" id="gain_embed">
-	<iframe src="/embed_table/?mirna={{ mir }}&gl=gain_mir&frame=gain_embed" width="100%" height="100%" frameborder="0" scrolling="no" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" id="gain_frame"></iframe>
-</div>
+<div class="ui mywide embed" id="gain_embed" data-url="/embed_table/?mirna={{ mir }}&gl=gain_mir&frame=gain_embed"></div>
 </span>
-<span id="loss_part">
-<div class="ui center aligned container">
-	<h2>Loss Sites</h2>	
+<div class="ui basic segment">
+  <div class="ui center aligned container">
+	  <h2>Loss Sites</h2>	
+  </div>
+  <div class="ui negative message" id="no_loss" style="display: none;">
+    <i class="close icon"></i>
+    <div class="header">
+      No Results!
+    </div>
+    <p>There are no less miRNAs binded when this site is edited.</p>
+  </div>
 </div>
+<span id="loss_part">
 <div class="ui grid" id="loss_imgs">
   <div class="eight wide column">
   	<h3 class="ui center aligned header" onclick="p1pop('p3')">Top 10 Edited Sites in Tumor</h3>
+    <div class="ui basic segment">
     <div class="ui active dimmer" id="p3loader">
       <div class="ui massive text loader">Loading</div>
     </div>
-    <span id="p3pic">
-  	<div class="ui embed" data-url="/img/sites/4/{'loss_mir': '{{ mir }}'}/p3/{{ rd.1 }}/">
-	</div>
+  	<div class="ui embed" data-url="/img/sites/5/{'loss_mir': '{{ mir }}'}/p3/{{ rd.1 }}/">
+	  </div>
+    <span id='pointp3'></span>
+    </div>
   </div>
   <div class="eight wide column">
   	<h3 class="ui center aligned header" onclick="p1pop('p4')">Edited Sites in Cancers</h3>
+    <div class="ui basic segment">
     <div class="ui active dimmer" id="p4loader">
       <div class="ui massive text loader">Loading</div>
     </div>
-    <span id="p4pic">
   	<div class="ui embed" data-url="/img/sites/3/{'loss_mir': '{{ mir }}'}/p4/{{ rd.1 }}/">
-	</div>
+	  </div>
+    <span id='pointp4'></span>
+    </div>
   </div>
 </div>
-<div class="ui embed" id="loss_embed" >
-	<iframe src="/embed_table/?mirna={{ mir }}&gl=loss_mir&frame=loss_embed" width="100%" height="100%" frameborder="0" scrolling="no" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" id="loss_frame"></iframe>
-</div>
+<div class="ui mywide embed" id="loss_embed" data-url="/embed_table/?mirna={{ mir }}&gl=loss_mir&frame=loss_embed"></div>
 </span>
 
 
@@ -140,7 +166,14 @@ heatmapChart(data,
   </div>
 </div>
 <script type="text/javascript">
+function alterHeight(h, id){
+  $('#' + id).height(h);
+}
 $('.ui.embed').embed();
+$('#pointp1').prev('div').children().children().attr("scrolling", "yes");
+$('#pointp2').prev('div').children().children().attr("scrolling", "yes");
+$('#pointp3').prev('div').children().children().attr("scrolling", "yes");
+$('#pointp4').prev('div').children().children().attr("scrolling", "yes");
 function p1pop(pp) {
 	$(function(){
 		$(".fullscreen." + pp + "big").modal('show');
@@ -156,11 +189,21 @@ function p1load(target_id, img_src) {
 }
 function vanish(tar) {
   if (tar == 'p1' || tar == 'p2'){
-    document.getElementById("gain_part").setAttribute("style", "display:none");
+    $("#gain_part").hide();
+    $("#no_gain").show();
   }
   if (tar == 'p3' || tar == 'p4'){
-    document.getElementById("loss_part").setAttribute("style", "display:none");
+    $("#loss_part").hide();
+    $("#no_loss").show();
   }
 }
+$('.message .close')
+  .on('click', function() {
+    $(this)
+      .closest('.message')
+      .transition('fade')
+    ;
+  })
+;
 </script>
 {% endblock %}

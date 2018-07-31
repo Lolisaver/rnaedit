@@ -16,7 +16,7 @@ font-family: Consolas;
 {% load mathfilters %}
 {% endblock %}
 {% block content %}
-<div class="ui basic segment">
+<div class="ui container" id="page">
   <div class="ui center aligned container">
     <h1 class="ui header">filtered miRNAs</h1>
     {% for key, value in cri.items %}
@@ -26,8 +26,6 @@ font-family: Consolas;
     </div>
     {% endfor %}
   </div>
-</div>
-<div class="ui container" id="page">
   <div class="ui horizontal list">
     <div class="item">
       <div class="ui menu">
@@ -49,6 +47,7 @@ font-family: Consolas;
       </div>
     </div>
   </div>
+
   <table class="ui blue striped celled accordion table">
     <!--此放table的header，header放的為搜尋結果的資料分類-->
     <thead>
@@ -77,6 +76,7 @@ font-family: Consolas;
             {% endif %}
           </a>
         </th>
+        <!--
         <th class="center aligned">
           <a href="?{{ search_record }}&click_sort=p50n">
             exp in {{ cancer }} (normal)
@@ -85,42 +85,24 @@ font-family: Consolas;
             {% endif %}
           </a>
         </th>
+        -->
       </tr>
     </thead>
     <!--此放搜尋結果的資料，依header排列的資料種類順序放置對應的資料種類-->
     <tbody>
       {% for mirna in mirnas %}
       <tr class="title">
-          <td class="center aligned"><a href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc={{ mirna.accession }}" target="_blank">{{ mirna.mirna }}</a></td>
-          <td class="center aligned"><a class="medium ui label" href="/mirna_sites/{{ mirna.mirna }}/">{{ mirna.mirna.wild_sites.all|length }} / {{ mirna.mirna.edit_sites.all|length }}</a></td>
-          <td class="center aligned">
-          {% if mirna.p50 > 10 %}
-            {{ mirna.p50|floatformat:0 }}
-          {% else %}
-            {{ mirna.p50|floatformat:2 }}
-          {% endif %}
-          </td>
-          <td class="center aligned">
-          {% for x in mirna.mirna.miexpnormal_set.all %}
-            {% if x.cancer_id == mirna.cancer_id %}
-              {% if x.p50 > 10 %}
-                {{ x.p50|floatformat:0 }}
-              {% else %}
-                {{ x.p50|floatformat:2 }}
-              {% endif %}
-            {% endif %}
-          {% empty %}
-          -
-          {%  endfor %}
-          </td>
+          <td class="center aligned"><a href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc={{ mirna.accession }}" target="_blank">{{ mirna }}</a></td>
+          <td class="center aligned"><a class="medium ui label" href="/mirna_sites/{{ mirna }}/">{{ mirna.wild_sites.all|length }} / {{ mirna.edit_sites.all|length }}</a></td>
+          <td class="center aligned">{{ mirna.p50 }}</td>
       </tr>
       <div class="content">
         <tr>
           <td colspan="5" class="transition hidden">
-            <div id="chart_{{ mirna.mirna }}" class="ui fluid center aligned container"></div>
+            <div id="chart_{{ mirna }}" class="ui fluid center aligned container"></div>
             <script type="text/javascript">
             var data = [];
-            {% for exp in mirna.mirna.miexpcancer_set.all %}
+            {% for exp in mirna.miexpcancer_set.all %}
               {% if exp.is_tumor == 1 %}
                 var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
               {% else %}
@@ -129,7 +111,7 @@ font-family: Consolas;
               data.push(block);
             {% endfor %}
             heatmapChart(data, 
-              "chart_{{ mirna.mirna }}", 
+              "chart_{{ mirna }}", 
               $('#page').width() * 0.95, 
               $('#page').width() * 0.12);
             </script>
@@ -168,6 +150,7 @@ font-family: Consolas;
           {% endif %}
         </a>
       </th>
+      <!--
       <th class="center aligned">
         <a href="?{{ search_record }}&click_sort=p50n">
           exp in {{ cancer }} (normal)
@@ -176,6 +159,7 @@ font-family: Consolas;
           {% endif %}
         </a>
       </th>
+      -->
     </tr>
     </tfoot>
   </table>

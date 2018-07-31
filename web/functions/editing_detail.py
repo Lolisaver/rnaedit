@@ -134,7 +134,7 @@ def editing_detail(request):
         try:
             datas_per_page = int(request.GET["datas_per_page"])
         except:
-            datas_per_page = 50
+            datas_per_page = 10
 
         paginator = Paginator(editing_details_list, datas_per_page)
 

@@ -17,23 +17,21 @@ font-family: Consolas, Lucida Console, monospace;
 {% load mathfilters %}
 {% endblock %}
 {% block content %}
-<div class="ui segments">
-	
 
-	<!--小區塊，裡面放搜尋結果的table-->
-	<div class="ui container">
-	<div class="ui big segment">
+<div class="ui container">
+<div class="ui big basic segment">
 		<div class="ui center aligned container">
 				<h2 class="ui header">{{ site.chromo }}:{{ site.loc }}</h2>
 		</div>
 <br>
 <!-- Gain table start -->
 {% if gain_binds|length > 0 %}
-		<table class="ui grey striped celled selectable table" >
+		<table class="ui grey celled table" >
 			<!--此放table的header，header放的為搜尋結果的資料分類-->
 			<thead>
-				<tr class="center aligned"><th colspan="6">Gain of miRNA:mRNA when edited</th></tr>
+				<tr class="center aligned"><th colspan="7">Gain of miRNA:mRNA when edited</th></tr>
 				<tr>
+					<th class="center aligned"></th>
 					<th class="center aligned">Pair</th>
 					<th class="center aligned">Binding</th>
 					<th class="center aligned">Tool</th>
@@ -44,26 +42,8 @@ font-family: Consolas, Lucida Console, monospace;
 			</thead>
 			<tbody>
 {% for bind in gain_binds %}
-				  <tr><td colspan="6">
-				  	<div id="heat_{{ bind.mir }}" class="ui fluid center aligned container"></div>
-					<script type="text/javascript">
-					var data = [];
-					{% for exp in bind.mir.miexpcancer_set.all %}
-					  console.log("{{ exp.p50 }}");
-					  {% if exp.is_tumor == 1 %}
-					    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
-					  {% else %}
-					    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
-					  {% endif %}
-					  data.push(block);
-					{% endfor %}
-					heatmapChart(data, 
-						"heat_{{ bind.mir }}", 
-						$("#heat_{{ bind.mir }}").width() * 0.9,
-						$("#heat_{{ bind.mir }}").width() * 0.12);
-					</script>
-				  </td></tr>
 			      <tr>
+			      	<td rowspan="2">{{ forloop.counter }}</td>
 			        <td class="right aligned">
 			        	<a class="ui large label" href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc={{ bind.mir.accession }}" target="_blank">{{ bind.mir }}</a>
 			        	<br>
@@ -97,6 +77,36 @@ MBStar
 					<td class="center aligned"><a class="ui large label" href="/mirexp/{{ site }}/{{ bind.mir }}">Exp</a></td>
 
 			      </tr>
+				  <tr>
+				  	<td colspan="6">
+				  	<div id="heat_{{ bind.mir }}" class="ui fluid center aligned container"></div>
+					<script type="text/javascript">
+					var data = [];
+					{% for exp in bind.mir.miexpcancer_set.all %}
+					  {% if exp.is_tumor == 1 %}
+					    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% else %}
+					    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% endif %}
+					  data.push(block);
+					{% endfor %}
+					if (data.length > 0){
+					heatmapChart(data, 
+						"heat_{{ bind.mir }}", 
+						$("#heat_{{ bind.mir }}").width() * 0.9,
+						$("#heat_{{ bind.mir }}").width() * 0.12);
+					}else{
+						var icon = $("<i>").attr('class', 'calendar times outline icon');
+						var nodata = $("<h3>")
+						.attr('class', "ui header")
+						.text('no miRNA expression data found');
+						$('#heat_{{ bind.mir }}').append(nodata);
+						$('#heat_{{ bind.mir }}').children().prepend(icon);
+						$('#heat_{{ bind.mir }}').append($("<p>"));
+						$('#heat_{{ bind.mir }}').prepend($("<p>"));
+					}
+					</script>
+				  </td></tr>
 {% endfor %}
 			</tbody>
 		</table>
@@ -106,11 +116,12 @@ MBStar
 <!-- Loss table start -->
 
 <br><br>
-		<table class="ui grey striped celled selectable table" >
+		<table class="ui grey celled table" >
 			<!--此放table的header，header放的為搜尋結果的資料分類-->
 			<thead>
-				<tr class="center aligned" id="loss"><th colspan="6">Loss of miRNA:mRNA when edited</th></tr>
+				<tr class="center aligned" id="loss"><th colspan="7">Loss of miRNA:mRNA when edited</th></tr>
 				<tr>
+					<th></th>
 					<th class="center aligned">Pair</th>
 					<th class="center aligned">Binding</th>
 					<th class="center aligned">Tool</th>
@@ -121,26 +132,8 @@ MBStar
 			</thead>
 			<tbody>
 {% for bind in loss_binds %}
-				  <tr><td colspan="6">
-				  	<div id="heat_{{ bind.mir }}" class="ui fluid center aligned container"></div>
-					<script type="text/javascript">
-					var data = [];
-					{% for exp in bind.mir.miexpcancer_set.all %}
-					  console.log("{{ exp.p50 }}");
-					  {% if exp.is_tumor == 1 %}
-					    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
-					  {% else %}
-					    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
-					  {% endif %}
-					  data.push(block);
-					{% endfor %}
-					heatmapChart(data, 
-						"heat_{{ bind.mir }}", 
-						$("#heat_{{ bind.mir }}").width() * 0.9,
-						$("#heat_{{ bind.mir }}").width() * 0.12);
-					</script>
-				  </td></tr>
 			      <tr>
+			      	<td rowspan="2">{{ forloop.counter }}</td>
 			        <td class="right aligned">
 			        	<a class="ui large label" href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc={{ bind.mir.accession }}" target="_blank">{{ bind.mir }}</a>
 			        	<br>
@@ -173,6 +166,36 @@ MBStar
 						</td>
 					<td class="center aligned"><a class="ui large label" href="/mirexp/{{ site }}/{{ bind.mir }}">Exp</a></td>
 			      </tr>
+				  <tr>
+				  	<td colspan="6">
+				  	<div id="heat_{{ bind.mir }}" class="ui fluid center aligned container"></div>
+					<script type="text/javascript">
+					var data = [];
+					{% for exp in bind.mir.miexpcancer_set.all %}
+					  {% if exp.is_tumor == 1 %}
+					    var block = {'day': 2, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% else %}
+					    var block = {'day': 1, 'hour': cam2num['{{ exp.cancer }}'], 'value': {{ exp.p50 }}};
+					  {% endif %}
+					  data.push(block);
+					{% endfor %}
+					if (data.length > 0){
+					heatmapChart(data, 
+						"heat_{{ bind.mir }}", 
+						$("#heat_{{ bind.mir }}").width() * 0.9,
+						$("#heat_{{ bind.mir }}").width() * 0.12);
+					}else{
+						var icon = $("<i>").attr('class', 'calendar times outline icon');
+						var nodata = $("<h3>")
+						.attr('class', "ui header")
+						.text('no miRNA expression data found');
+						$('#heat_{{ bind.mir }}').append(nodata);
+						$('#heat_{{ bind.mir }}').children().prepend(icon);
+						$('#heat_{{ bind.mir }}').append($("<p>"));
+						$('#heat_{{ bind.mir }}').prepend($("<p>"));
+					}
+					</script>
+				  </td></tr>
 {% endfor %}
 			</tbody>
 		</table>
@@ -180,6 +203,5 @@ MBStar
 <!-- Loss table end -->
 		</div>
 		</div>
-	</div>
 </div>
 {% endblock %}

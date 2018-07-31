@@ -19,11 +19,7 @@ function chrlen() {
 {% block content %}
     <!--若使用者有做過搜尋且不符合規定這跳出以下設定訊息-->
     <div class="ui center aligned container">
-        <p>
-        <h1 class="ui header">
-              <!--Search RNA Editing Events By:-->
-        </h1>
-        </p><br><br>
+      <br><br>
     {% if zero_result %}
         <p>
             <div class="ui red label">There is no data satisfies your request.</div>
@@ -31,142 +27,179 @@ function chrlen() {
     {% endif %}
     </div>
 
-    <div class="ui center aligned container">
-    <form class="ui form" action="" method="get">
-    <div class="ui three column centered middle aligned grid">
-        <!--供使用者輸入範圍的欄位-->
-        <div class="four column centered row">
-            <div class="right aligned column">
-            <!--    <div class="ui inverted yellow right pointing large label">  -->
-                <div class="ui basic large label">Genomic Region:</div>
-            </div>
-            <!--可供使用者選想要的chromosome-->
-            <div class="six wide left aligned column">
-                <div class="ui item">
-                <div class="ui left fluid action input">
-                    <select class="ui dropdown" name="chromosome_field" id='chromo_select' value="0" style="width:100px" onchange="chrlen()">
-                        <option value="0">Any</option>
-                        <option value="1">chr1</option>
-                        <option value="2">chr2</option>
-                        <option value="3">chr3</option>
-                        <option value="4">chr4</option>
-                        <option value="5">chr5</option>
-                        <option value="6">chr6</option>
-                        <option value="7">chr7</option>
-                        <option value="8">chr8</option>
-                        <option value="9">chr9</option>
-                        <option value="10">chr10</option>
-                        <option value="11">chr11</option>
-                        <option value="12">chr12</option>
-                        <option value="13">chr13</option>
-                        <option value="14">chr14</option>
-                        <option value="15">chr15</option>
-                        <option value="16">chr16</option>
-                        <option value="17">chr17</option>
-                        <option value="18">chr18</option>
-                        <option value="19">chr19</option>
-                        <option value="20">chr20</option>
-                        <option value="21">chr21</option>
-                        <option value="22">chr22</option>
-                        <option value="X">chrX</option>
-                        <option value="Y">chrY</option>
-                    </select>
-                    <!--供使用者輸入區間範圍-->
-                    &nbsp;
-                    <div class="ui input">
-                        <input type="text" id='chr_start' placeholder="start" name="region_start">
-                    </div>
-                    <div class="middle aligned content">
-                      <a class="header">&nbsp;-&nbsp;</a>
-                    </div>
-                    <div class="ui input">
-                        <input type="text" id='chrlenplace' placeholder="end" name="region_end">
-                    </div>
-                     <a class="header">&nbsp;&nbsp;&nbsp;(GRCh38/hg38)&nbsp;</a>  
-                    </div>
-                </div>
+<div class="ui text container">
 
-            </div>
-        </div>
+<div class="ui basic segment">
+  <h2 class="ui left floated header">Search RNA editing sites of interest  </h2>
+  <h4 class="ui right floated header"><a>(GRCh38/hg38)</a></h4>
+</div>
 
-        <!--給使用者輸入genename 欄位-->
-        <div class="four column centered row">
-            <div class="right aligned column">
-               <div class="ui basic large label">Gene Name:</div>
-            </div>
-            <div class="six wide left aligned column">
-                <div class="ui search selection gene dropdown">
-                  <input type="hidden" name="gene_name_field">
-                  <i class="dropdown icon"></i>
-                  <div class="default text">Select Gene</div>
-                  <div class="menu" id="gene_target">
-                 </div>            
-                </div>
+<form class="ui large form" action="" method="get">
+  <div class="ui divider"></div>
+<br>
 
-            </div>
-        </div>
+  <div class="field">
+    <div class="fields">
 
-        <!--給使用者輸入genomic region的欄位-->
-        <div class="four column centered row">
-            <div class="right aligned column">
-                <div class="ui basic large label">Genic Region:</div>
-            </div>
-            <!--給使用者用選擇的方式避免輸入錯誤-->
-            <div class="six wide left aligned column">
-                <div class="field">
-                    <select class="ui fluid search dropdown" name="genomic_region_field" value="any">
-<option value="any">Any</option>
-{% with 'intronic intergenic ncRNA_intronic UTR3 downstream ncRNA_exonic upstream exonic UTR5 splicing ncRNA_splicing' as list %}
-{% for reg in list.split %}
-<option value="{{ reg }}">{{ reg }}</option>
-{% endfor %}
-{% endwith %}
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="four column centered row">
-            <div class="right aligned column">
-                <div class="ui basic large label">Repeat:</div>
-            </div>
-            <div class="six wide left aligned column">
-                <div class="field">
-                    <select class="ui fluid search dropdown" name="repeat_field" value="any">
-                        <option value="any">Any</option>
-                        <option value="ALU">ALU</option>
-                        <option value="HERVK">HERVK</option>
-                        <option value="SVA">SVA</option>
-                        <option value="L1">L1</option>
-                        <option value="">Non</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <!--給使用者輸入AA change的欄位-->
-        <div class="four column centered row">
-            <div class="right aligned column">
-                <div class="ui basic large label">AA Change:</div>
-            </div>
-            <div class="six wide left aligned column">
-                <div class="field">
-                    <select class="ui fluid search dropdown" name="aa_change_field" value="any">
-                        <option value="any">Any</option>
-                        <option value="2">Synonymous</option>
-                        <option value="1">Nonsynonymous</option>
-                        <option value="3">Stop Loss</option>
-                        <option value="4">Unknown</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!--送出搜尋條件的按鍵-->
-        <div class="middle aligned column">
-            <button class="ui teal button" type="submit">Search</button>
+    <div class="eight wide field">
+      <label>Chromosome</label>
+        <div class="ui selection dropdown">
+        <input type="hidden" name="chromosome_field" id='chromo_select' value="0" onchange="chrlen()">
+        <i class="dropdown icon"></i>
+        <div class="default text">any</div>
+          <div class="menu">
+<!--            <div class="item" data-value="0">Any</div>  -->
+            <div class="item" data-value="1">chr1</div>
+            <div class="item" data-value="2">chr2</div>
+            <div class="item" data-value="3">chr3</div>
+            <div class="item" data-value="4">chr4</div>
+            <div class="item" data-value="5">chr5</div>
+            <div class="item" data-value="6">chr6</div>
+            <div class="item" data-value="7">chr7</div>
+            <div class="item" data-value="8">chr8</div>
+            <div class="item" data-value="9">chr9</div>
+            <div class="item" data-value="10">chr10</div>
+            <div class="item" data-value="11">chr11</div>
+            <div class="item" data-value="12">chr12</div>
+            <div class="item" data-value="13">chr13</div>
+            <div class="item" data-value="14">chr14</div>
+            <div class="item" data-value="15">chr15</div>
+            <div class="item" data-value="16">chr16</div>
+            <div class="item" data-value="17">chr17</div>
+            <div class="item" data-value="18">chr18</div>
+            <div class="item" data-value="19">chr19</div>
+            <div class="item" data-value="20">chr20</div>
+            <div class="item" data-value="21">chr21</div>
+            <div class="item" data-value="22">chr22</div>
+            <div class="item" data-value="X">chrX</div>
+            <div class="item" data-value="Y">chrY</div>
+          </div>
         </div>
     </div>
-    </form>
+
+    <div class="four wide field">
+      <label>From</label>
+        <div class="ui input">
+            <input type="text" id='chr_start' placeholder="start" name="loc__gte">
+        </div>
+    </div>
+
+    <div class="four wide field">
+      <label>To</label>
+      <div class="field">
+        <div class="ui input">
+            <input type="text" id='chrlenplace' placeholder="end" name="loc__lte">
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+
+  <div class="field">
+    <div class="fields">
+      
+      <div class="eight wide field">
+        <label>Gene Name (ex: NOL9)</label>
+        <input type="text" name="gene_name_field" placeholder="any">
+      </div>
+      
+      <div class="eight wide field">
+        <label>Genic Region</label>
+        <div class="ui selection dropdown">
+          <input type="hidden" name="genomic_region_field" value='any'>
+          <i class="dropdown icon"></i>
+          <div class="default text">any</div>
+          <div class="menu" id="grs_menu"></div>
+            <script type="text/javascript">
+            var grs = ["intronic", "intergenic", "ncRNA_intronic", "UTR3", "downstream", "ncRNA_exonic", "upstream", "exonic", "UTR5", "splicing", "ncRNA_splicing"];
+            var i;
+            for (i = 0; i < grs.length; i++){
+                $('#grs_menu').append("<div class='item' data-value='" + grs[i] + "'>" + grs[i] + "</div>");}
+            </script>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+  <div class="field">
+    <div class="fields">
+      <div class="eight wide field">
+        <label>Repeat</label>
+        <div class="ui selection dropdown">
+          <input type="hidden" name="repeat_field" value='any'>
+          <i class="dropdown icon"></i>
+          <div class="default text">any</div>
+          <div class="menu" id="rps_menu"></div>
+            <script type="text/javascript">
+            var rps = ["ALU", "HERVK", "SVA", "L1", "Non"];
+            var i;
+            for (i = 0; i < rps.length; i++){
+                $('#rps_menu').append("<div class='item' data-value='" + rps[i] + "'>" + rps[i] + "</div>");}
+            </script>
+        </div>
+      </div>
+      
+      <div class="eight wide field">
+        <label>AA Change</label>
+        <div class="ui selection dropdown">
+          <input type="hidden" name="aa_change_field" value='any'>
+          <i class="dropdown icon"></i>
+          <div class="default text">any</div>
+          <div class="menu">
+            <div class="item" data-value="2">Synonymous</div>
+            <div class="item" data-value="1">Nonsynonymous</div>
+            <div class="item" data-value="3">Stop Loss</div>
+            <div class="item" data-value="4">Unknown</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="fields">
+      <div class="four wide field">
+        <label># of miRNA-UTR Gain</label>
+        <input type="text" name="gain__gte" placeholder="min">
+      </div>
+      <div class="four wide field">
+        <label><span style="color:white">.</span></label>
+        <input type="text" name="gain__lte" placeholder="max">
+      </div>
+      <div class="four wide field">
+        <label># of miRNA-UTR Loss</label>
+        <input type="text" name="loss__gte" placeholder="min">
+      </div>
+      <div class="four wide field">
+        <label><span style="color:white">.</span></label>
+        <input type="text" name="loss__lte" placeholder="max">
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="fields">
+      <div class="six wide field">
+        <label>cox in Cancer</label>
+        <input type="text" name="cox_cancer" placeholder="no use for now">
+      </div>
+      <div class="five wide field">
+        <label>cox in Cancers from</label>
+        <input type="text" name="siteanno__has_cox__gte" placeholder="from">
+      </div>
+      <div class="five wide field">
+        <label>cox in Cancers to</label>
+        <input type="text" name="siteanno__has_cox__lte" placeholder="to">
+      </div>
+    </div>
+  </div>
+
+  <button class="ui teal button" type="submit">Search</button>
+ 
+</form>
 </div>
+
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script type="text/javascript">
 d3.csv("{% static "csv/gene_inputs.txt" %}", function(d) {
@@ -180,5 +213,6 @@ d3.csv("{% static "csv/gene_inputs.txt" %}", function(d) {
 $('.ui.dropdown')
   .dropdown()
 ;
+$('#chromo_select').attr("style", "width: 100px;");
 </script>
 {% endblock %}

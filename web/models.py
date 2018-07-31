@@ -85,6 +85,18 @@ class Site(models.Model):
         return self.key
 
 
+class siteAnno(models.Model):
+    site = models.OneToOneField(Site, on_delete=models.CASCADE, primary_key=True)
+    tumor33 = models.DecimalField(max_digits=4, decimal_places=2, null=True)
+    normal33 = models.DecimalField(max_digits=4, decimal_places=2, null=True)
+    edint = models.PositiveIntegerField(default=0)
+    edinn = models.PositiveIntegerField(default=0)
+    radar = models.BooleanField(default=False)
+    darned = models.BooleanField(default=False)
+    has_cox = models.PositiveSmallIntegerField(default=0)
+
+
+
 class rediLevel(models.Model):
     nas = models.PositiveIntegerField(default=0)
     ngs = models.PositiveIntegerField(default=0)
@@ -146,7 +158,7 @@ class Bind(models.Model):
 class Miexp(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     mir = models.ForeignKey(Mirna, on_delete=models.CASCADE)
-    exp = models.DecimalField(max_digits=10, decimal_places=3)
+    exp = models.DecimalField(max_digits=10, decimal_places=3, null=True)
 
 
 class Cancer(models.Model):
@@ -234,3 +246,5 @@ class cox(models.Model):
     cancer = models.ForeignKey(Cancer, on_delete=models.CASCADE)
     p = models.DecimalField(max_digits=10, decimal_places=9)
     fdr = models.DecimalField(max_digits=10, decimal_places=9)
+    coeff = models.DecimalField(max_digits=8, decimal_places=6)
+

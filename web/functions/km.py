@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from web.models import LevelLite as ll
 from lifelines import KaplanMeierFitter
+from web.models import Site
 
 
 def km(request, cancer, site, cut):
@@ -45,7 +46,7 @@ def km(request, cancer, site, cut):
     pic_path = '/var/www/rnaedit/static/img/km/p1.png'
     fig = kmf.plot(ax=ax).get_figure()
     fig.savefig(pic_path)
-
-    mt = {'cut': cut, 'site': site, 'ig': ingroup, 'cancer': cancer}
+    s1 = Site.objects.get(key=site)
+    mt = {'cut': cut, 'site': s1, 'ig': ingroup, 'cancer': cancer}
 
     return render(request, "km.html", {'pic': pic_path.split('static/')[1], 'meta': mt})
